@@ -21,12 +21,12 @@ public class PersonService {
         return new ArrayList<>(people.values());
     }
 
-    public Person createPerson(String name) {
+    public Person createPerson(String name,String role, int totalWorkHour) {
         // Generate a new unique ID
         int newId = idCounter.incrementAndGet();
 
         // Create a new Person object
-        Person newPerson = new Person(newId, name);
+        Person newPerson = new Person(newId, name,role,totalWorkHour);
 
         // Add the new person to our HashMap
         people.put(newId, newPerson);
@@ -38,5 +38,21 @@ public class PersonService {
         // or null if the key didn't exist.
         // We can use this to see if the deletion was successful.
         return people.remove(id) != null;
+    }
+    // Add this method inside PersonService.java
+    public Person updatePerson(int id, String name, String role, int totalWorkHour) {
+        // Find the existing person in the HashMap
+        Person personToUpdate = people.get(id);
+
+        // If the person exists, update their fields
+        if (personToUpdate != null) {
+            personToUpdate.setName(name);
+            personToUpdate.setRole(role);
+            // Assuming your Person model has a settotalWorkHour method
+            personToUpdate.setTotalWorkHour(totalWorkHour);
+            return personToUpdate;
+        }
+        // Return null or throw an exception if the person wasn't found
+        return null;
     }
 }
