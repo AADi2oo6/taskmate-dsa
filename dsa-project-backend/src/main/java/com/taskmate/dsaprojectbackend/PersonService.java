@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Collections;
+import java.util.Comparator;
 
 @Service // Tells Spring that this is a service class
 public class PersonService {
@@ -101,5 +102,63 @@ public class PersonService {
         Collections.swap(list, i + 1, high);
 
         return i + 1;
+    }
+    public List<Person> findPeopleInWorkHourRange(int minHours, int maxHours) {
+        // 1. Get the data and, crucially, sort it by work hours.
+        // This is a PRE-REQUISITE for binary search to work.
+        List<Person> personList = new ArrayList<>(people.values());
+        personList.sort(Comparator.comparingInt(Person::getTotalWorkHour));
+
+        // 2. Find the starting and ending indices of our range.
+        int startIndex = findFirstIndex(personList, minHours);
+        int endIndex = findLastIndex(personList, maxHours);
+
+        // 3. If the range is valid, extract and return the sublist.
+        if (startIndex != -1 && endIndex != -1 && startIndex <= endIndex) {
+            return personList.subList(startIndex, endIndex + 1);
+        }
+
+        // 4. If no valid range is found, return an empty list.
+        return Collections.emptyList();
+    }
+
+    /**
+     * A modified binary search to find the index of the FIRST element
+     * that is greater than or equal to the target value.
+     */
+    private int findFirstIndex(List<Person> list, int target) {
+        int low = 0, high = list.size() - 1, result = -1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            int midValue = list.get(mid).getTotalWorkHour();
+
+            if (midValue >= target) {
+                result = mid;
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * A modified binary search to find the index of the LAST element
+     * that is less than or equal to the target value.
+     */
+    private int findLastIndex(List<Person> list, int target) {
+        int low = 0, high = list.size() - 1, result = -1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            int midValue = list.get(mid).getTotalWorkHour();
+
+            if (midValue <= target) {
+                result = mid;
+                low = mid + 1;
+            } else {
+                high = mid - 1; 
+            }
+        }
+        return result;
     }
 }

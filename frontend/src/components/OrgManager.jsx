@@ -20,7 +20,22 @@ const OrgManager = () => {
   // NEW: State to handle the "update" functionality
   const [isEditing, setIsEditing] = useState(false);
   const [currentPersonId, setCurrentPersonId] = useState(null);
- 
+
+  //Searching 
+  const [minHours, setMinHours] = useState('');
+  const [maxHours, setMaxHours] = useState('');
+  const handleRangeSearch = () => {
+    if (!minHours || !maxHours) {
+        alert("Please enter both a minimum and maximum hour value.");
+        return;
+    }
+    fetch(`http://localhost:8080/api/people/search-by-hours?min=${minHours}&max=${maxHours}`)
+      .then(response => response.json())
+      .then(filteredData => setPeople(filteredData))
+      .catch(error => console.error('Error fetching filtered people:', error));
+  };
+
+  //sorting 
   const handleSortByHours = () => {
       fetch('http://localhost:8080/api/people/sorted-by-hours')
         .then(response => response.json())
@@ -28,14 +43,18 @@ const OrgManager = () => {
         .catch(error => console.error('Error fetching sorted people:', error));
   };
 
-  const handleResetSort = () => {
-      // This simply re-fetches the original, unsorted list
-      fetch('http://localhost:8080/api/people')
-        .then(response => response.json())
-        .then(data => setPeople(data))
-        .catch(error => console.error('Error fetching people:', error));
+  const handleReset = () => {
+    // Re-fetches the original, unsorted list
+    fetch('http://localhost:8080/api/people')
+      .then(response => response.json())
+      .then(data => setPeople(data))
+      .catch(error => console.error('Error fetching people:', error));
+    // Clear the search inputs
+    setMinHours('');
+    setMaxHours('');
   };
 
+  
   // Pre-defined roles for the dropdown menu
   const roles = ["Analyst", "Developer", "Manager", "QA Tester", "Designer", "System Administrator", "Project Manager", "Data Analyst", "UI/UX Designer"];
 
@@ -168,14 +187,35 @@ const OrgManager = () => {
                 <button type="submit">{isEditing ? 'Update' : 'Add Person'}</button>
                 {isEditing && <button type="button" onClick={resetForm} className="cancel-btn">Cancel</button>}
             </form>
-            <div className="table-header">
-                <h2 style={{margin: 0}}>Current Team</h2>
-            {/* buttons for sorting :  */}
-                <div>
-                    <button onClick={handleSortByHours} className="action-btn sort-btn">Sort by Work Hours</button>
-                    <button onClick={handleResetSort} className="action-btn cancel-btn">Reset Sort</button>
-                </div>
-            </div>
+            {/* serching logc  */}
+            <div>
+              <div className="search-container card">
+                  <h3>Search by Work Hour Range</h3>
+                  <div className="search-form">
+                      <input 
+                          type="number" 
+                          value={minHours} 
+                          onChange={e => setMinHours(e.target.value)} 
+                          placeholder="Min Hours" 
+                      />
+                      <input 
+                          type="number" 
+                          value={maxHours} 
+                          onChange={e => setMaxHours(e.target.value)} 
+                          placeholder="Max Hours" 
+                      />
+                      <button onClick={handleRangeSearch} className="action-btn sort-btn">Search</button>
+                  </div>
+              </div>
+
+              <div className="table-header">
+                  <h2 style={{margin: 0}}>Current Team</h2>
+                  <div>
+                      <button onClick={handleSortByHours} className="action-btn sort-btn">Sort by Work Hours</button>
+                      <button onClick={handleReset} className="action-btn cancel-btn">Reset View</button>
+                  </div>
+              </div>
+          </div>
 
             
             <table className="people-table">

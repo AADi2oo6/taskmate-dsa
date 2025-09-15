@@ -2,10 +2,11 @@ package com.taskmate.dsaprojectbackend;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/people") // Base path for all methods in this controller
@@ -57,8 +58,17 @@ public class PersonController {
             return ResponseEntity.notFound().build();
         }
     }
+//    Sorting
     @GetMapping("/sorted-by-hours")
     public List<Person> getSortedPeople() {
         return personService.getPeopleSortedByWorkHours();
+    }
+
+//    Binary Search
+    @GetMapping("/search-by-hours")
+    public List<Person> searchPeopleByWorkHours(
+            @RequestParam int min,
+            @RequestParam int max) {
+        return personService.findPeopleInWorkHourRange(min, max);
     }
 }

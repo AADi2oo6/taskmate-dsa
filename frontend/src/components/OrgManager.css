@@ -329,3 +329,24 @@
     background-color: #2563eb; /* A different blue */
     color: white;
 }
+
+/* Add this to the end of OrgManager.css */
+.search-container {
+    margin-top: 32px;
+    padding: 20px;
+}
+.search-container h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+.search-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.search-form input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
