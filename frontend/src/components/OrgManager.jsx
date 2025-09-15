@@ -20,6 +20,21 @@ const OrgManager = () => {
   // NEW: State to handle the "update" functionality
   const [isEditing, setIsEditing] = useState(false);
   const [currentPersonId, setCurrentPersonId] = useState(null);
+ 
+  const handleSortByHours = () => {
+      fetch('http://localhost:8080/api/people/sorted-by-hours')
+        .then(response => response.json())
+        .then(sortedData => setPeople(sortedData)) // Update the state with the sorted list
+        .catch(error => console.error('Error fetching sorted people:', error));
+  };
+
+  const handleResetSort = () => {
+      // This simply re-fetches the original, unsorted list
+      fetch('http://localhost:8080/api/people')
+        .then(response => response.json())
+        .then(data => setPeople(data))
+        .catch(error => console.error('Error fetching people:', error));
+  };
 
   // Pre-defined roles for the dropdown menu
   const roles = ["Analyst", "Developer", "Manager", "QA Tester", "Designer", "System Administrator", "Project Manager", "Data Analyst", "UI/UX Designer"];
@@ -153,8 +168,15 @@ const OrgManager = () => {
                 <button type="submit">{isEditing ? 'Update' : 'Add Person'}</button>
                 {isEditing && <button type="button" onClick={resetForm} className="cancel-btn">Cancel</button>}
             </form>
+            <div className="table-header">
+                <h2 style={{margin: 0}}>Current Team</h2>
+            {/* buttons for sorting :  */}
+                <div>
+                    <button onClick={handleSortByHours} className="action-btn sort-btn">Sort by Work Hours</button>
+                    <button onClick={handleResetSort} className="action-btn cancel-btn">Reset Sort</button>
+                </div>
+            </div>
 
-            <h2 style={{marginTop: '40px'}}>Current Team</h2>
             
             <table className="people-table">
                 <thead>

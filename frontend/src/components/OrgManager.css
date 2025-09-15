@@ -317,3 +317,15 @@
     background-color: #ef4444;
     color: white;
 }
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.sort-btn {
+    background-color: #2563eb; /* A different blue */
+    color: white;
+}

@@ -57,4 +57,8 @@ public class PersonController {
             return ResponseEntity.notFound().build();
         }
     }
+    @GetMapping("/sorted-by-hours")
+    public List<Person> getSortedPeople() {
+        return personService.getPeopleSortedByWorkHours();
+    }
 }
