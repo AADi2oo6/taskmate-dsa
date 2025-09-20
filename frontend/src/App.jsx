@@ -1,23 +1,13 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import OrgManager from './components/OrgManager';
+import './App.css'; // Add this line
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <h1>Smart Resource & Task Management System</h1>
-      <p>This is our 1st React Project!</p>
-
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
-    </>
-  )
+    <div className="App">
+      <OrgManager />
+    </div>
+  );
 }
 
-export default App
+export default App;
