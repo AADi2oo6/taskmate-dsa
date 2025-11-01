@@ -1,18 +1,10 @@
 // src/main/java/com/taskmate/dsaprojectbackend/TaskController.java
 package com.taskmate.dsaprojectbackend;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -30,14 +22,20 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task addTask(@RequestBody Task task) {
-        return taskService.addTask(task);
+    public Task addTask(@RequestBody Map<String, String> payload) {
+        String description = payload.get("description");
+        String date = payload.get("date");
+        String targetRole = payload.get("targetRole");
+        return taskService.addTask(description, date, targetRole);
     }
     
     // NEW: Endpoint to update all task fields
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable int id, @RequestBody Task task) {
-        Task updatedTask = taskService.updateTask(id, task.getDescription(), task.getDate(), task.getTargetRole());
+    public ResponseEntity<Task> updateTask(@PathVariable int id, @RequestBody Map<String, String> payload) {
+        String description = payload.get("description");
+        String date = payload.get("date");
+        String targetRole = payload.get("targetRole");
+        Task updatedTask = taskService.updateTask(id, description, date, targetRole);
         if (updatedTask != null) {
             return ResponseEntity.ok(updatedTask);
         } else {
@@ -64,18 +62,6 @@ public class TaskController {
         } else {
             return ResponseEntity.notFound().build();
         }
-    }
-
-    @PutMapping("/{id}/assign")
-    public ResponseEntity<Task> assignTask(@PathVariable int id, @RequestBody Map<String, Integer> payload) {
-        if (!payload.containsKey("personId")) {
-            return ResponseEntity.badRequest().build();
-        }
-        Integer personId = payload.get("personId");
-        Task assignedTask = taskService.assignTask(id, personId);
-        return assignedTask != null 
-            ? ResponseEntity.ok(assignedTask) 
-            : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/count")
