@@ -13,10 +13,9 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Apply to all endpoints in the application
-                registry.addMapping("/**") 
-                        // Allow requests from both ports 5173 and 5174
-                        .allowedOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175") 
+                // Allow requests from the default Vite development server port
+                registry.addMapping("/api/**") // Apply to all endpoints under /api/
+                        .allowedOrigins("http://localhost:5173") // The origin of your React app
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

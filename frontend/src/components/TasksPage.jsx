@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { format, parseISO } from 'date-fns';
-import AssignTaskModal from './AssignTaskModal'; // Import the new modal
 
-const API_URL = 'http://localhost:8081/api/tasks';
+const API_URL = 'http://localhost:8080/api/tasks';
 
 const TasksPage = ({ setTaskCount }) => {
     const [tasks, setTasks] = useState([]);
@@ -15,10 +14,6 @@ const TasksPage = ({ setTaskCount }) => {
     // NEW state for editing functionality
     const [isEditing, setIsEditing] = useState(false);
     const [currentTaskId, setCurrentTaskId] = useState(null);
-
-    // State for the new assignment modal
-    const [assignModalTask, setAssignModalTask] = useState(null);
-
 
     const roles = ["Manager", "Developer", "Designer", "Tester", "System Administrator", "Project Manager", "Data Analyst", "UI/UX Designer"];
 
@@ -126,10 +121,6 @@ const TasksPage = ({ setTaskCount }) => {
         setNewTaskRole('');
     };
 
-    const handleTaskAssigned = () => {
-        fetchTasks(); // Re-fetch tasks to show updated status
-    };
-
     return (
         <div className="main-panel">
             <div className="panel-header">
@@ -170,7 +161,6 @@ const TasksPage = ({ setTaskCount }) => {
                         <th>Status</th>
                         <th>Role</th>
                         <th>Date</th>
-                        <th>Assigned To</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -191,31 +181,21 @@ const TasksPage = ({ setTaskCount }) => {
                                     </select>
                                 </td>
                                 <td>{task.targetRole}</td>
-                                <td>{task.date ? format(parseISO(task.date), 'MM/dd/yy h:mm a') : 'N/A'}</td>
-                                <td>{task.assignedPersonId || 'Unassigned'}</td>
+                                <td>{task.date ? format(parseISO(task.date), 'MM/dd/yy hh:mm a') : 'N/A'}</td>
                                 <td>
+                                    {/* NEW: Edit and Delete buttons */}
                                     <button onClick={() => handleEditTask(task)} className="action-btn edit-btn">Edit</button>
-                                    {task.status === 'Pending' && (
-                                        <button onClick={() => setAssignModalTask(task)} className="action-btn sort-btn">Assign</button>
-                                    )}
                                     <button onClick={() => handleDeleteTask(task.id)} className="action-btn delete-btn">Delete</button>
                                 </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="7" style={{ textAlign: 'center' }}>No tasks found.</td>
+                            <td colSpan="6" style={{ textAlign: 'center' }}>No tasks found.</td>
                         </tr>
                     )}
                 </tbody>
             </table>
-            {assignModalTask && (
-                <AssignTaskModal 
-                    task={assignModalTask}
-                    onClose={() => setAssignModalTask(null)}
-                    onTaskAssigned={handleTaskAssigned}
-                />
-            )}
         </div>
     );
 };
