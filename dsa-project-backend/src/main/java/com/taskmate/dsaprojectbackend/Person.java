@@ -1,19 +1,38 @@
 package com.taskmate.dsaprojectbackend;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
+
+@Entity
 public class Person {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
     private String role;
     private int totalWorkHour;
+    private Integer managerId; // New field for hierarchy
 
-    // Constructor
-    public Person(int id, String name,String role, int totalWorkHour) {
-        this.id = id;
-        this.name = name;
-        this.role = role;
-        this.totalWorkHour = totalWorkHour;
+    @ManyToMany
+    @JoinTable(
+      name = "person_team", 
+      joinColumns = @JoinColumn(name = "person_id"), 
+      inverseJoinColumns = @JoinColumn(name = "team_id"))
+    @JsonBackReference // This prevents the infinite loop
+    private Set<Team> teams = new HashSet<>(); // Initialize the set
 
-    }
+    // No-argument constructor for Spring/Jackson deserialization
+    public Person() {}
 
     // Getters and Setters
     public int getId() {
@@ -43,5 +62,21 @@ public class Person {
     }
     public void setTotalWorkHour(int totalWorkHour) {
         this.totalWorkHour = totalWorkHour;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public Set<Team> getTeams() {
+        return teams;
+    }
+
+    public void setTeams(Set<Team> teams) {
+        this.teams = teams;
     }
 }

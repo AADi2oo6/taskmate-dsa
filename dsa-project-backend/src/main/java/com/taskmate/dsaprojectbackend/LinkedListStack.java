@@ -48,4 +48,9 @@ public class LinkedListStack<T> {
     public int size() {
         return size;
     }
+
+    public void clear() {
+        top = null;
+        size = 0;
+    }
 }

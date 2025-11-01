@@ -1,79 +1,77 @@
 // src/main/java/com/taskmate/dsaprojectbackend/TaskService.java
 package com.taskmate.dsaprojectbackend;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class TaskService {
-    private final SinglyLinkedList<Task> tasks = new SinglyLinkedList<>();
+    private final TaskRepository taskRepository;
 
-    public TaskService() {
-        tasks.add(new Task("Plan project meeting", "In Progress", "2025-09-22T12:00", "Manager"));
-        tasks.add(new Task("Code backend feature", "In Progress", "2025-09-23T14:00", "Developer"));
+    public TaskService(TaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
     }
+
+    // You can add initial data via a CommandLineRunner bean if needed
 
     public List<Task> getAllTasks() {
-        return tasks.toList();
+        return taskRepository.findAll();
     }
 
-    public Task addTask(String description, String date, String targetRole) {
-        Task newTask = new Task(description, "Pending", date, targetRole);
-        tasks.add(newTask);
-        return newTask;
+    public Task addTask(Task task) {
+        // Ensure new tasks always start with a "Pending" status and are unassigned.
+        Task newTask = new Task(task.getDescription(), "Pending", task.getDate(), task.getTargetRole());
+        newTask.setAssignedPersonId(null);
+        return taskRepository.save(newTask);
     }
 
     public boolean deleteTask(int id) {
-        Task taskToRemove = null;
-        for (Task task : tasks.toList()) {
-            if (task.getId() == id) {
-                taskToRemove = task;
-                break;
-            }
-        }
-        if (taskToRemove != null) {
-            return tasks.remove(taskToRemove);
+        if (taskRepository.existsById(id)) {
+            taskRepository.deleteById(id);
+            return true;
         }
         return false;
     }
     
     // UPDATED: This method now handles updating all task fields
     public Task updateTask(int id, String description, String date, String targetRole) {
-        Task taskToUpdate = null;
-        for (Task task : tasks.toList()) {
-            if (task.getId() == id) {
-                taskToUpdate = task;
-                break;
-            }
-        }
-        if (taskToUpdate != null) {
-            taskToUpdate.setDescription(description);
-            taskToUpdate.setDate(date);
-            taskToUpdate.setTargetRole(targetRole);
-            return taskToUpdate;
+        Optional<Task> taskOptional = taskRepository.findById(id);
+        if (taskOptional.isPresent()) {
+            Task task = taskOptional.get();
+            task.setDescription(description);
+            task.setDate(date);
+            task.setTargetRole(targetRole);
+            return taskRepository.save(task);
         }
         return null;
     }
     
     public Task updateTaskStatus(int id, String status) {
-        Task taskToUpdate = null;
-        for (Task task : tasks.toList()) {
-            if (task.getId() == id) {
-                taskToUpdate = task;
-                break;
-            }
+        Optional<Task> taskOptional = taskRepository.findById(id);
+        if (taskOptional.isPresent()) {
+            Task task = taskOptional.get();
+            task.setStatus(status);
+            return taskRepository.save(task);
         }
-        if (taskToUpdate != null) {
-            taskToUpdate.setStatus(status);
-            return taskToUpdate;
+        return null;
+    }
+
+    public Task assignTask(int taskId, int personId) {
+        Optional<Task> taskOptional = taskRepository.findById(taskId);
+        if (taskOptional.isPresent()) {
+            Task task = taskOptional.get();
+            task.setAssignedPersonId(personId);
+            task.setStatus("In Progress"); // Update status upon assignment
+            return taskRepository.save(task);
         }
         return null;
     }
     
     public long getActiveTaskCount() {
-        return tasks.toList().stream()
+        return taskRepository.findAll().stream()
                 .filter(task -> "Pending".equals(task.getStatus()) || "In Progress".equals(task.getStatus()))
                 .count();
     }
