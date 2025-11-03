@@ -5,16 +5,17 @@ import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import './OrgManager.css';
 import TasksPage from './TasksPage';
+import ResourceManager from './ResourceManager'; // Import the new resource manager component
 import TeamsPage from './TeamsPage';
 import OrgHierarchyTree from './OrgHierarchyTree'; // Import the hierarchy component
 import TeamDetailPage from './TeamDetailPage'; // Import the new detail page
 
 // Importing icons from the react-icons library
 import { LuLayoutDashboard } from "react-icons/lu";
+import { GrResources } from "react-icons/gr";
 import { FaUsers } from 'react-icons/fa';
 import { HiOutlineUsers } from "react-icons/hi2";
 import { BsCheck2Square } from "react-icons/bs";
-import { GoProjectSymlink } from "react-icons/go";
 import { FaSitemap } from "react-icons/fa"; // New icon for hierarchy
 import { IoMoonOutline } from "react-icons/io5";
 
@@ -74,14 +75,19 @@ const OrgManager = () => {
 
         try {
             if (isEditing) {
-                await axios.put(`${API_URL}/${currentId}`, personData);
+                const response = await axios.put(`${API_URL}/${currentId}`, personData, { headers: { 'Content-Type': 'application/json' } });
+                // Replace the old person with the updated one in the state
+                setPeople(people.map(p => p.id === currentId ? response.data : p));
                 toast.success('Person updated successfully!');
             } else {
-                await axios.post(API_URL, personData);
+                const response = await axios.post(API_URL, personData, { headers: { 'Content-Type': 'application/json' } });
+                // Add the new person to the existing state
+                setPeople([...people, response.data]);
                 toast.success('Person added successfully!');
             }
-            fetchPeople();
             resetForm();
+            // We no longer need fetchPeople() here as we are updating the state directly
+            // fetchPeople(); 
         } catch (error) {
             // Enhanced error handling to display specific backend messages
             const errorMessage = error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'add'} person.`;
@@ -143,7 +149,7 @@ const OrgManager = () => {
         setName(person.name);
         setRole(person.role);
         setTotalWorkHour(person.totalWorkHour);
-        setManagerId(person.managerId || ''); // Set managerId for editing
+        setManagerId(person.managerId ?? ''); // Coalesce null/undefined to an empty string for the select input
     };
 
     const handleDelete = async (id) => {
@@ -173,7 +179,7 @@ const OrgManager = () => {
                         <li><Link to="/teams" className={`nav-link ${currentPage === 'teams' ? 'active' : ''}`}><FaUsers className="nav-icon" /> Teams</Link></li>
                         <li><Link to="/tasks" className={`nav-link ${currentPage === 'tasks' ? 'active' : ''}`}><BsCheck2Square className="nav-icon" /> Tasks</Link></li>
                         <li><Link to="/hierarchy" className={`nav-link ${currentPage === 'hierarchy' ? 'active' : ''}`}><FaSitemap className="nav-icon" /> Hierarchy</Link></li>
-                        <li><Link to="/resources" className={`nav-link ${currentPage === 'resources' ? 'active' : ''}`}><GoProjectSymlink className="nav-icon" /> Resources</Link></li>
+                        <li><Link to="/resourcemanage" className={`nav-link ${currentPage === 'resourcemanage' ? 'active' : ''}`}><GrResources className="nav-icon" /> Resources</Link></li>
                     </ul>
                 </nav>
             </aside>
@@ -273,7 +279,8 @@ const OrgManager = () => {
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Role</th>
-                                    <th>Manager ID</th> {/* New column */}
+                                    {/* New column */}
+                                    <th>Manager ID</th>
                                     <th>Total Working Hours</th>
                                     <th>Actions</th>
                                 </tr>
@@ -306,8 +313,7 @@ const OrgManager = () => {
                     <Route path="/tasks" element={<TasksPage setTaskCount={setTaskCount} />} />
                     <Route path="/hierarchy" element={<OrgHierarchyTree setTeamCount={setTeamCount} />} />
                     <Route path="/team/:teamId" element={<TeamDetailPage />} />
-                    {/* Add a placeholder for the resources page */}
-                    <Route path="/resources" element={<div className="card" style={{ marginTop: '32px' }}><h2>Resources Page</h2><p>This page is under construction.</p></div>} />
+                    <Route path="/resourcemanage" element={<ResourceManager />} />
                 </Routes>
             </main>
             <ToastContainer position="bottom-right" autoClose={3000} />

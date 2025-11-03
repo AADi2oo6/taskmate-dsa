@@ -34,8 +34,8 @@ public class PersonController {
     }
 
     @PostMapping
-    public Person createPerson(@RequestBody Person person) {
-        return personService.createPerson(person);
+    public PersonDTO createPerson(@RequestBody Person person) {
+        return personService.createPersonAndConvertToDTO(person);
     }
 
     @DeleteMapping("/{id}")
@@ -49,9 +49,9 @@ public class PersonController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Person> updatePerson(@PathVariable int id, @RequestBody Person person) {
-        Person updatedPerson = personService.updatePerson(id, person);
-        if (updatedPerson != null) {
+    public ResponseEntity<PersonDTO> updatePerson(@PathVariable int id, @RequestBody Person person) {
+        PersonDTO updatedPerson = personService.updatePersonAndConvertToDTO(id, person);
+        if (updatedPerson != null) { 
             return ResponseEntity.ok(updatedPerson);
         } else {
             return ResponseEntity.notFound().build();
@@ -59,12 +59,12 @@ public class PersonController {
     }
 
     @GetMapping("/sorted-by-hours")
-    public List<Person> getSortedPeople() {
+    public List<PersonDTO> getSortedPeople() {
         return personService.getPeopleSortedByWorkHours();
     }
 
     @GetMapping("/search-by-hours")
-    public List<Person> searchPeopleByWorkHours(
+    public List<PersonDTO> searchPeopleByWorkHours(
             @RequestParam int min,
             @RequestParam int max) {
         return personService.findPeopleInWorkHourRange(min, max);

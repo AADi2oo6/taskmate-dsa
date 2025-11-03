@@ -828,3 +828,42 @@
     font-size: 0.85rem;
     color: var(--text-secondary);
 }
+
+/* --- Resource Manager Form Styles --- */
+.resource-allocation-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    align-items: end;
+}
+
+.resource-allocation-form input,
+.resource-allocation-form select,
+.resource-allocation-form .react-select-container {
+    width: 100%;
+}
+
+.resource-allocation-form .primary-button {
+    /* Allow the button to span the full width on small screens if it's the last item */
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: auto;
+    padding: 8px 24px;
+}
+
+@media (min-width: 930px) {
+    .resource-allocation-form .primary-button {
+        grid-column: auto; /* Revert to auto on larger screens */
+    }
+}
+
+.form-field-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-field-wrapper label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}

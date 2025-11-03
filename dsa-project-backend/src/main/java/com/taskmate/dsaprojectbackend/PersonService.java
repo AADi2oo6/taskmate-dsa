@@ -33,6 +33,11 @@ public class PersonService {
         return personRepository.save(person);
     }
 
+    public PersonDTO createPersonAndConvertToDTO(Person person) {
+        Person savedPerson = personRepository.save(person);
+        return new PersonDTO(savedPerson);
+    }
+
     public boolean deletePerson(int id) {
         if(personRepository.existsById(id)) {
             personRepository.deleteById(id);
@@ -59,14 +64,31 @@ public class PersonService {
         return null;
     }
 
-    // Existing methods (getPeopleSortedByWorkHours, quickSort, partition, etc.)
-    public List<Person> getPeopleSortedByWorkHours() {
-        List<Person> people = personRepository.findAll();
-        people.sort(Comparator.comparingInt(Person::getTotalWorkHour));
-        return people;
+    public PersonDTO updatePersonAndConvertToDTO(int id, Person updatedPersonData) {
+        Optional<Person> existingPersonOptional = personRepository.findById(id);
+        if (existingPersonOptional.isPresent()) {
+            Person existingPerson = existingPersonOptional.get();
+
+            existingPerson.setName(updatedPersonData.getName());
+            existingPerson.setRole(updatedPersonData.getRole());
+            existingPerson.setTotalWorkHour(updatedPersonData.getTotalWorkHour());
+            existingPerson.setManagerId(updatedPersonData.getManagerId());
+
+            Person updatedPerson = personRepository.save(existingPerson);
+
+            return new PersonDTO(updatedPerson);
+        }
+        return null;
     }
 
-    public List<Person> findPeopleInWorkHourRange(int minHours, int maxHours) {
+    // Existing methods (getPeopleSortedByWorkHours, quickSort, partition, etc.)
+    public List<PersonDTO> getPeopleSortedByWorkHours() {
+        List<Person> people = personRepository.findAll();
+        people.sort(Comparator.comparingInt(Person::getTotalWorkHour));
+        return people.stream().map(PersonDTO::new).collect(Collectors.toList());
+    }
+
+    public List<PersonDTO> findPeopleInWorkHourRange(int minHours, int maxHours) {
         List<Person> people = personRepository.findAll();
         // This is a simplified linear search. For a large dataset, a binary search on a sorted list would be better.
         List<Person> result = new ArrayList<>();
@@ -75,7 +97,7 @@ public class PersonService {
                 result.add(person);
             }
         }
-        return result;
+        return result.stream().map(PersonDTO::new).collect(Collectors.toList());
     }
 
     // New method to build the organizational hierarchy as a tree
