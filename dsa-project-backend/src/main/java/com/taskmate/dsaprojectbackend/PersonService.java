@@ -29,8 +29,22 @@ public class PersonService {
     }
 
     // This new method accepts a Person object, which matches the frontend request
-    public Person createPerson(Person person) {
-        return personRepository.save(person);
+    public PersonDTO createPerson(PersonRequest personRequest) {
+        Person newPerson = new Person();
+        newPerson.setName(personRequest.getName());
+        newPerson.setRole(personRequest.getRole());
+        newPerson.setTotalWorkHour(personRequest.getTotalWorkHour());
+
+        if (personRequest.getManagerId() != null) {
+            newPerson.setManagerId(personRequest.getManagerId());
+        }
+
+        return new PersonDTO(personRepository.save(newPerson));
+    }
+
+    public PersonDTO createPersonAndConvertToDTO(Person person) {
+        Person savedPerson = personRepository.save(person);
+        return new PersonDTO(savedPerson);
     }
 
     public boolean deletePerson(int id) {
@@ -42,7 +56,7 @@ public class PersonService {
     }
 
     // New method to update a person using a Person object
-    public Person updatePerson(int id, Person updatedPersonData) {
+    public PersonDTO updatePerson(int id, PersonRequest updatedPersonData) {
         Optional<Person> existingPersonOptional = personRepository.findById(id);
         if (existingPersonOptional.isPresent()) {
             Person existingPerson = existingPersonOptional.get();
@@ -50,23 +64,25 @@ public class PersonService {
             existingPerson.setName(updatedPersonData.getName());
             existingPerson.setRole(updatedPersonData.getRole());
             existingPerson.setTotalWorkHour(updatedPersonData.getTotalWorkHour());
-            existingPerson.setManagerId(updatedPersonData.getManagerId());
+
+            Integer managerId = updatedPersonData.getManagerId();
+            existingPerson.setManagerId(managerId);
 
             Person updatedPerson = personRepository.save(existingPerson);
 
-            return updatedPerson;
+            return new PersonDTO(updatedPerson);
         }
         return null;
     }
 
     // Existing methods (getPeopleSortedByWorkHours, quickSort, partition, etc.)
-    public List<Person> getPeopleSortedByWorkHours() {
+    public List<PersonDTO> getPeopleSortedByWorkHours() {
         List<Person> people = personRepository.findAll();
         people.sort(Comparator.comparingInt(Person::getTotalWorkHour));
-        return people;
+        return people.stream().map(PersonDTO::new).collect(Collectors.toList());
     }
 
-    public List<Person> findPeopleInWorkHourRange(int minHours, int maxHours) {
+    public List<PersonDTO> findPeopleInWorkHourRange(int minHours, int maxHours) {
         List<Person> people = personRepository.findAll();
         // This is a simplified linear search. For a large dataset, a binary search on a sorted list would be better.
         List<Person> result = new ArrayList<>();
@@ -75,7 +91,7 @@ public class PersonService {
                 result.add(person);
             }
         }
-        return result;
+        return result.stream().map(PersonDTO::new).collect(Collectors.toList());
     }
 
     // New method to build the organizational hierarchy as a tree
@@ -90,8 +106,7 @@ public class PersonService {
 
         // Build hierarchy
         for (Person person : personRepository.findAll()) {
-            TreeNode<Person> personNode = nodeMap.get(person.getId());
-            if (person.getManagerId() != null && nodeMap.containsKey(person.getManagerId())) {
+            TreeNode<Person> personNode = nodeMap.get(person.getId());            if (person.getManagerId() != null && nodeMap.containsKey(person.getManagerId())) {
                 TreeNode<Person> managerNode = nodeMap.get(person.getManagerId());
                 managerNode.addChild(personNode);
             } else {
