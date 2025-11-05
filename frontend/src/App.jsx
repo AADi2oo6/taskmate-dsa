@@ -1,5 +1,5 @@
 import React from 'react';
-import OrgManager from './components/OrgManager';
+import OrgManager from './components/person/OrgManager';
 import './App.css'; // Add this line
 
 function App() {
