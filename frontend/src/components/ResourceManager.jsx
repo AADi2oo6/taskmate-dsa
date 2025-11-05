@@ -237,7 +237,8 @@ const ResourceManager = () => {
             return;
         }
         try {
-            const response = await axios.post(RESOURCES_API_URL, { name: newResourceName });
+            const newResource = { name: newResourceName };
+            const response = await axios.post(RESOURCES_API_URL, newResource);
             setResources(prev => [...prev, response.data]);
             toast.success(`Resource "${newResourceName}" added!`);
             setNewResourceName('');

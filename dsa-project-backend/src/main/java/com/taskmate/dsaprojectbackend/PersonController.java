@@ -34,8 +34,8 @@ public class PersonController {
     }
 
     @PostMapping
-    public PersonDTO createPerson(@RequestBody Person person) {
-        return personService.createPersonAndConvertToDTO(person);
+    public PersonDTO createPerson(@RequestBody PersonRequest personRequest) {
+        return personService.createPerson(personRequest);
     }
 
     @DeleteMapping("/{id}")
@@ -49,8 +49,8 @@ public class PersonController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PersonDTO> updatePerson(@PathVariable int id, @RequestBody Person person) {
-        PersonDTO updatedPerson = personService.updatePersonAndConvertToDTO(id, person);
+    public ResponseEntity<PersonDTO> updatePerson(@PathVariable int id, @RequestBody PersonRequest personRequest) {
+        PersonDTO updatedPerson = personService.updatePerson(id, personRequest);
         if (updatedPerson != null) { 
             return ResponseEntity.ok(updatedPerson);
         } else {
