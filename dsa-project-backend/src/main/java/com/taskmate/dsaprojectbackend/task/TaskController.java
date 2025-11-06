@@ -34,10 +34,22 @@ public class TaskController {
         return taskService.addTask(task);
     }
     
-    // NEW: Endpoint to update all task fields
+    @PostMapping("/dto")
+    public Task addTaskFromDTO(@RequestBody TaskDTO taskDTO) {
+        return taskService.addTaskFromDTO(taskDTO);
+    }
+    
+    // NEW: Endpoint to update all task fields including priority and deadline
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTask(@PathVariable int id, @RequestBody Task task) {
-        Task updatedTask = taskService.updateTask(id, task.getDescription(), task.getDate(), task.getTargetRole());
+        Task updatedTask = taskService.updateTaskWithDetails(
+            id, 
+            task.getDescription(), 
+            task.getDate(), 
+            task.getTargetRole(),
+            task.getPriority(),
+            task.getDeadline()
+        );
         if (updatedTask != null) {
             return ResponseEntity.ok(updatedTask);
         } else {
@@ -81,5 +93,35 @@ public class TaskController {
     @GetMapping("/count")
     public long getActiveTaskCount() {
         return taskService.getActiveTaskCount();
+    }
+    
+    // New endpoint to update task priority
+    @PutMapping("/{id}/priority")
+    public ResponseEntity<Task> updateTaskPriority(@PathVariable int id, @RequestBody Map<String, Integer> payload) {
+        Integer priority = payload.get("priority");
+        if (priority == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Task updatedTask = taskService.updateTaskPriority(id, priority);
+        if (updatedTask != null) {
+            return ResponseEntity.ok(updatedTask);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // New endpoint to update task deadline
+    @PutMapping("/{id}/deadline")
+    public ResponseEntity<Task> updateTaskDeadline(@PathVariable int id, @RequestBody Map<String, String> payload) {
+        String deadline = payload.get("deadline");
+        if (deadline == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Task updatedTask = taskService.updateTaskDeadline(id, deadline);
+        if (updatedTask != null) {
+            return ResponseEntity.ok(updatedTask);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

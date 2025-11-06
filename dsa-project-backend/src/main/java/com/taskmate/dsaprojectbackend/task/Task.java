@@ -16,9 +16,24 @@ public class Task {
     private String date; // Changed to String
     private String targetRole;
     private Integer assignedPersonId; // New field to track assignment
+    
+    // New fields for priority queue feature
+    private int priority; // 1-5, where 1 is highest priority
+    private String deadline; // Deadline date
 
     // No-argument constructor for Spring/Jackson deserialization
     public Task() {}
+
+    // Constructor with all fields
+    public Task(String description, String status, String date, String targetRole, int priority, String deadline) {
+        this.description = description;
+        this.status = status;
+        this.date = date;
+        this.targetRole = targetRole;
+        this.assignedPersonId = null; // Not assigned by default
+        this.priority = priority;
+        this.deadline = deadline;
+    }
 
     public Task(String description, String status, String date, String targetRole) {
         this.description = description;
@@ -26,6 +41,8 @@ public class Task {
         this.date = date;
         this.targetRole = targetRole;
         this.assignedPersonId = null; // Not assigned by default
+        this.priority = 3; // Default medium priority
+        this.deadline = date; // Default deadline to task date
     }
 
     // New getters and setters for the new fields
@@ -51,6 +68,23 @@ public class Task {
 
     public void setAssignedPersonId(Integer assignedPersonId) {
         this.assignedPersonId = assignedPersonId;
+    }
+    
+    // Getters and setters for priority and deadline
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public String getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(String deadline) {
+        this.deadline = deadline;
     }
     
     // Existing getters and setters
