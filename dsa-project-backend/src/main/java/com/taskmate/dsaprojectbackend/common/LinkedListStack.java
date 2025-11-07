@@ -1,5 +1,5 @@
-// src/main/java/com/taskmate/dsaprojectbackend/LinkedListStack.java
-package com.taskmate.dsaprojectbackend;
+// src/main/java/com/taskmate/dsaprojectbackend/common/LinkedListStack.java
+package com.taskmate.dsaprojectbackend.common;
 
 import java.util.EmptyStackException;
 

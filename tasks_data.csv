@@ -1,0 +1,26 @@
+description,status,date,targetRole,priority,deadline,assignedPersonId
+Database Optimization,Completed,2025-10-15T10:00:00,Database Administrator,2,2025-10-20T10:00:00,17
+API Documentation,Pending,2025-11-10T09:00:00,Technical Writer,3,2025-11-15T09:00:00,
+Frontend Redesign,In Progress,2025-11-05T14:00:00,UI/UX Designer,1,2025-11-20T14:00:00,5
+Security Audit,Pending,2025-11-12T11:00:00,Cybersecurity Analyst,1,2025-11-18T11:00:00,
+Mobile App Testing,Pending,2025-11-08T13:00:00,QA Engineer,2,2025-11-14T13:00:00,
+Cloud Migration,In Progress,2025-10-28T15:00:00,Cloud Architect,1,2025-11-25T15:00:00,12
+User Training,Pending,2025-11-15T10:00:00,HR Manager,4,2025-11-20T10:00:00,
+Performance Tuning,Pending,2025-11-07T16:00:00,DevOps Engineer,2,2025-11-13T16:00:00,
+Data Backup,Pending,2025-11-09T08:00:00,System Administrator,3,2025-11-11T08:00:00,
+Feature Implementation,In Progress,2025-11-01T09:00:00,Software Developer,1,2025-11-17T09:00:00,1
+Bug Fixes,Pending,2025-11-06T12:00:00,Software Tester,2,2025-11-10T12:00:00,
+Code Review,Pending,2025-11-04T14:00:00,Software Architect,3,2025-11-09T14:00:00,
+Network Setup,Pending,2025-11-11T10:00:00,Network Engineer,2,2025-11-16T10:00:00,
+Report Generation,Pending,2025-11-03T11:00:00,Data Analyst,4,2025-11-08T11:00:00,
+Client Meeting,Pending,2025-11-13T15:00:00,Project Manager,5,2025-11-13T15:00:00,
+Server Maintenance,In Progress,2025-11-02T10:00:00,System Administrator,2,2025-11-07T10:00:00,25
+UI Prototype,Pending,2025-11-14T09:00:00,UI/UX Designer,3,2025-11-19T09:00:00,
+Algorithm Implementation,Pending,2025-11-09T14:00:00,Software Developer,1,2025-11-16T14:00:00,
+Database Migration,In Progress,2025-10-30T11:00:00,Database Administrator,1,2025-11-22T11:00:00,17
+API Testing,Pending,2025-11-11T13:00:00,QA Engineer,2,2025-11-15T13:00:00,
+Documentation Update,Pending,2025-11-07T15:00:00,Technical Writer,4,2025-11-12T15:00:00,
+Infrastructure Scaling,In Progress,2025-11-01T16:00:00,DevOps Engineer,1,2025-11-18T16:00:00,37
+Data Analysis,Pending,2025-11-08T09:00:00,Data Scientist,3,2025-11-13T09:00:00,
+Code Refactoring,Pending,2025-11-05T12:00:00,Software Architect,2,2025-11-11T12:00:00,
+System Monitoring,Pending,2025-11-10T10:00:00,System Engineer,3,2025-11-14T10:00:00,
