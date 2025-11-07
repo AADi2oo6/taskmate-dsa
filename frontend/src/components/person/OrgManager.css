@@ -1,0 +1,869 @@
+/* --- Variable Definitions --- */
+:root {
+  --sidebar-bg: #111827;
+  --sidebar-text: #9ca3af;
+  --sidebar-text-hover: #ffffff;
+  --main-bg: #f9fafb;
+  --card-bg: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --active-blue: #3b82f6;
+  --border-color: #e5e7eb;
+}
+
+/* --- Main Layout --- */
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-primary);
+}
+
+/* --- Sidebar Styles --- */
+.sidebar {
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar-header h1 {
+  font-size: 1.25rem;
+  color: var(--sidebar-text-hover);
+  margin: 0 0 4px 0;
+}
+
+.sidebar-header p {
+  font-size: 0.875rem;
+  margin: 0 0 32px 0;
+  color: var(--sidebar-text);
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  margin-bottom: 6px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--sidebar-text);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #1f2937;
+  color: var(--sidebar-text-hover);
+}
+
+.nav-link.active {
+  background-color: var(--active-blue);
+  color: white;
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+}
+
+.shortcut {
+  margin-left: auto;
+  font-size: 0.75rem;
+  background-color: #374151;
+  color: #d1d5db;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.nav-link.active .shortcut {
+  background-color: #60a5fa;
+  color: white;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background-color: #1f2937;
+  color: var(--sidebar-text);
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.theme-toggle:hover {
+    color: var(--sidebar-text-hover);
+    border-color: #4b5563;
+}
+
+/* --- Main Content Styles --- */
+.main-content {
+  flex-grow: 1;
+  padding: 40px;
+  background-color: var(--main-bg);
+  overflow-y: auto;
+}
+
+.main-header h1 {
+  font-size: 1.875rem;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 600;
+}
+
+.main-header p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 4px 0 32px 0;
+}
+
+/* --- New Stats Grid Styles --- */
+.new-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+}
+
+.new-stat-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    text-decoration: none; /* Remove underline from link */
+    color: inherit; /* Inherit text color */
+}
+
+.new-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+}
+
+.stat-label { margin: 0 0 4px 0; color: var(--text-secondary); font-weight: 500; }
+.stat-value { margin: 0; font-size: 2.25rem; font-weight: 700; color: var(--text-primary); }
+
+
+.card {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 20px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card p {
+  margin: 0 0 8px 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.stat-card span {
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.chart-placeholder h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.chart-placeholder p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+/* Add this to the end of OrgManager.css */
+
+.people-management-section {
+  margin-top: 32px;
+}
+
+.add-person-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.add-person-form input {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.add-person-form button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--active-blue);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.people-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.people-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.people-list li:last-child {
+  border-bottom: none;
+}
+
+.delete-btn {
+  padding: 4px 8px;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  background-color: transparent;
+  color: #ef4444;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.delete-btn:hover {
+  background-color: #ef4444;
+  color: white;
+}
+/* Add this to the end of OrgManager.css */
+
+.person-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.person-form input,
+.person-form select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  flex-grow: 1; /* Makes inputs share space */
+}
+
+.person-form button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--active-blue);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap; /* Prevents button text from wrapping */
+}
+
+.person-form .cancel-btn {
+    background-color: #6b7280; /* Gray color */
+}
+
+.people-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.people-table th,
+.people-table td {
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    text-align: left;
+}
+
+.people-table th {
+    background-color: #f9fafb; /* Light gray header */
+}
+
+.people-table td {
+    background-color: white;
+}
+
+.action-btn {
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.edit-btn {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #ef4444;
+    color: white;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.sort-btn {
+    background-color: #2563eb; /* A different blue */
+    color: white;
+}
+
+/* Add this to the end of OrgManager.css */
+.search-container {
+    margin-top: 32px;
+    padding: 20px;
+}
+.search-container h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+.search-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* --- Teams Page Styles --- */
+.teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.team-card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.team-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.team-lead {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #ca8a04; /* Amber color for lead */
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.team-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+}
+
+.avatar-stack {
+    display: flex;
+    margin-top: auto; /* Pushes avatars to the bottom */
+    padding-top: 16px;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 2px solid white;
+    margin-left: -10px;
+    user-select: none;
+}
+
+.avatar:first-child {
+    margin-left: 0;
+}
+
+.avatar-more {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #d1d5db;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border: 2px solid white;
+    margin-left: -10px;
+}
+
+.manage-btn {
+    background-color: transparent;
+    color: var(--active-blue);
+    border: 1px solid var(--active-blue);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 16px; /* Add space above the button */
+    width: 100%; /* Make the button full-width of the card padding */
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.manage-btn:hover {
+    background-color: var(--active-blue);
+    color: white;
+}
+
+.delete-team-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    line-height: 1;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.delete-team-btn:hover {
+    background-color: #fee2e2; /* Light red */
+    color: #b91c1c; /* Darker red */
+}
+
+/* --- Modal Styles --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(17, 24, 39, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0 0 16px 0;
+}
+
+.modal-tabs {
+    display: flex;
+    gap: 4px;
+}
+
+.modal-tabs button {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+}
+
+.modal-tabs button.active {
+    color: var(--active-blue);
+    border-bottom-color: var(--active-blue);
+}
+
+.modal-tabs button:disabled {
+    color: #d1d5db;
+    cursor: not-allowed;
+}
+
+.modal-body {
+    padding: 24px;
+    flex-grow: 1;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.member-management {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.panel h3 {
+    font-size: 1rem;
+    margin: 0 0 12px 0;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 12px;
+}
+.search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+.search-box svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.member-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    height: 250px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.member-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.member-list li:hover {
+    background-color: #f9fafb;
+}
+.member-list li.lead {
+    background-color: #fefce8; /* Light yellow for lead */
+}
+.member-list li span {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+.member-actions {
+    display: flex;
+    gap: 8px;
+}
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.icon-btn:hover {
+    color: var(--text-primary);
+}
+.lead .icon-btn:first-child {
+    color: #ca8a04;
+}
+.remove-member-btn:hover {
+    color: #ef4444;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px 24px;
+    border-top: 1px solid var(--border-color);
+}
+.search-form input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.hierarchy-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* --- Hierarchy Vertical Layout Styles --- */
+.hierarchy-vertical-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 32px; /* Space between each org chart */
+    margin-top: 32px;
+}
+
+.org-chart-wrapper {
+    padding: 32px;
+    background-color: var(--card-bg);
+    overflow-x: auto; /* Allow horizontal scrolling for wide charts */
+}
+
+.tree-root {
+    list-style: none;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    display: inline-flex; /* Allows chart to grow naturally based on its content */
+}
+
+.hierarchy-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.node-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    cursor: pointer;
+}
+
+.node-card { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    min-width: 220px;
+    z-index: 2; /* Keep card above the lines */
+}
+
+/* Vertical line coming DOWN from a parent card */
+.node-content::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 20px;
+    background-color: #cbd5e1;
+}
+
+.node-children-container {
+    position: relative;
+    padding-top: 20px; /* Space between parent and children */
+}
+
+/* Hide the downward connector if the node has no children or is collapsed */
+.hierarchy-node:not(:has(.node-children)) .node-content::after {
+    display: none;
+}
+
+/* Horizontal line connecting all children */
+.node-children::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    right: 50%;
+    height: 2px;
+    background-color: #cbd5e1;
+    z-index: 1;
+}
+
+.node-children {
+    list-style: none;
+    padding-left: 0;
+    display: flex;
+    gap: 20px; /* Space between sibling nodes */
+    position: relative;
+}
+
+/* Vertical line coming UP from a child card */
+.hierarchy-node:not(.tree-root > .hierarchy-node) .node-content::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 20px;
+    background-color: #cbd5e1;
+}
+
+.node-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e0e7ff;
+    color: #4338ca;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.node-info p { margin: 0; }
+.node-name { font-weight: 600; color: var(--text-primary); }
+.node-role { font-size: 0.875rem; color: var(--text-secondary); }
+
+.toggle-icon {
+    color: #94a3b8;
+    font-size: 1rem;
+    /* The node-content is now the click target, so this icon is just visual */
+    margin-right: 8px;
+}
+
+.node-team-size-badge {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 9999px;
+}
+
+.activity-log-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* --- Resource Manager Form Styles --- */
+.resource-allocation-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    align-items: end;
+}
+
+.resource-allocation-form input,
+.resource-allocation-form select,
+.resource-allocation-form .react-select-container {
+    width: 100%;
+}
+
+.resource-allocation-form .primary-button {
+    /* Allow the button to span the full width on small screens if it's the last item */
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: auto;
+    padding: 8px 24px;
+}
+
+@media (min-width: 930px) {
+    .resource-allocation-form .primary-button {
+        grid-column: auto; /* Revert to auto on larger screens */
+    }
+}
+
+.form-field-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-field-wrapper label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}

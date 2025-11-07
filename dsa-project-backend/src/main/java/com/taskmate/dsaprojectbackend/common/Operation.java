@@ -1,5 +1,7 @@
-// src/main/java/com/taskmate/dsaprojectbackend/Operation.java
-package com.taskmate.dsaprojectbackend;
+// src/main/java/com/taskmate/dsaprojectbackend/common/Operation.java
+package com.taskmate.dsaprojectbackend.common;
+
+import com.taskmate.dsaprojectbackend.person.Person;
 
 public class Operation {
     public enum Type { CREATE, UPDATE, DELETE }
