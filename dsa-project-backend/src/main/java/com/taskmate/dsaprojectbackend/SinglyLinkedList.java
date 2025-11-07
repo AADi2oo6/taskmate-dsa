@@ -1,5 +1,5 @@
-// src/main/java/com/taskmate/dsaprojectbackend/common/SinglyLinkedList.java
-package com.taskmate.dsaprojectbackend.common;
+// src/main/java/com/taskmate/dsaprojectbackend/SinglyLinkedList.java
+package com.taskmate.dsaprojectbackend;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,45 +52,6 @@ public class SinglyLinkedList<T> {
         return false;
     }
     
-    // More efficient remove method for tasks, using ID
-    public boolean removeById(int id) {
-        if (head == null) {
-            return false;
-        }
-        // Assuming T is Task, we need a way to get the ID.
-        // This requires a bit of a workaround or an interface.
-        // For this specific project, we can cast.
-        if (head.data instanceof com.taskmate.dsaprojectbackend.task.Task && 
-            ((com.taskmate.dsaprojectbackend.task.Task) head.data).getId() == id) {
-            head = head.next;
-            return true;
-        }
-
-        Node<T> current = head;
-        while (current.next != null) {
-            if (current.next.data instanceof com.taskmate.dsaprojectbackend.task.Task && 
-                ((com.taskmate.dsaprojectbackend.task.Task) current.next.data).getId() == id) {
-                current.next = current.next.next;
-                return true;
-            }
-            current = current.next;
-        }
-        return false;
-    }
-
-    // Find a task by its ID
-    public T findById(int id) {
-        Node<T> current = head;
-        while (current != null) {
-            if (current.data instanceof com.taskmate.dsaprojectbackend.task.Task && 
-                ((com.taskmate.dsaprojectbackend.task.Task) current.data).getId() == id) {
-                return current.data;
-            }
-            current = current.next;
-        }
-        return null;
-    }
-
     // Convert to a List for easy return in API endpoints
     public List<T> toList() {
         List<T> list = new ArrayList<>();

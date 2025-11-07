@@ -47,11 +47,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<mainClass>
-						com.taskmate.dsaprojectbackend.DsaProjectBackendApplication
-					</mainClass>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
