@@ -1,16 +1,24 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import RecursiveTeamNode from './RecursiveTeamNode'; // Import the new recursive component
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import hierarchyDefinition from '../../hierarchy_definition.json'; // Import the new hierarchy definition
 
 const API_URL = 'http://localhost:8082/api/people';
 
 const OrgHierarchyTree = ({ setTeamCount }) => { // This is now the main container component
     const [treeData, setTreeData] = useState([]);
+    const [people, setPeople] = useState([]); // <-- Add state for people
     const [loading, setLoading] = useState(true);
     const [teamMetadataMap, setTeamMetadataMap] = useState(new Map());
-    const [sortMethod, setSortMethod] = useState('name-asc');
-    const [filterTerm, setFilterTerm] = useState('');
+    const [focusNodeId, setFocusNodeId] = useState(null); // New state for focus view
+
+    // --- New state for Search & Focus ---
+    const [searchTerm, setSearchTerm] = useState('');
+    const [highlightedNodeId, setHighlightedNodeId] = useState(null);
+    const [highlightedPath, setHighlightedPath] = useState([]);
+    const transformComponentRef = useRef(null);
 
     useEffect(() => {
         fetchAndProcessData();
@@ -20,10 +28,11 @@ const OrgHierarchyTree = ({ setTeamCount }) => { // This is now the main contain
         try {
             setLoading(true);
             const response = await axios.get(API_URL);
-            const people = response.data;
+            const peopleData = response.data;
+            setPeople(peopleData); // <-- Store people in state
 
             // --- Pre-processing Step ---
-            const { processedTreeData, processedMetadataMap } = preProcessData(people);
+            const { processedTreeData, processedMetadataMap } = preProcessData(peopleData);
 
             setTreeData(processedTreeData);
             setTeamMetadataMap(processedMetadataMap);
@@ -37,19 +46,47 @@ const OrgHierarchyTree = ({ setTeamCount }) => { // This is now the main contain
         }
     };
 
-    const preProcessData = (people) => {
-        const peopleMap = new Map(people.map(p => [p.id, { ...p, children: [] }]));
-        const rootNodes = [];
+    const preProcessData = (peopleData) => {
+        const roleToNodeMap = new Map();
 
-        // Build the tree structure
-        for (const person of people) {
-            if (person.managerId && peopleMap.has(person.managerId)) {
-                const manager = peopleMap.get(person.managerId);
-                manager.children.push(peopleMap.get(person.id));
-            } else {
-                rootNodes.push(peopleMap.get(person.id));
+        // 1. Build the skeleton tree from the JSON definition
+        const buildSkeleton = (roleDefinition) => {
+            const node = {
+                id: `role-${roleDefinition.role.replace(/\s+/g, '-')}`,
+                name: roleDefinition.role,
+                type: 'role',
+                children: [],
+            };
+            roleToNodeMap.set(roleDefinition.role, node);
+
+            if (roleDefinition.children) {
+                node.children = roleDefinition.children.map(buildSkeleton);
             }
-        }
+            return node;
+        };
+
+        const skeletonRoot = buildSkeleton(hierarchyDefinition);
+
+        // 2. Populate the skeleton with actual people
+        peopleData.forEach(person => {
+            const parentNode = roleToNodeMap.get(person.role);
+            if (parentNode) {
+                parentNode.children.push({
+                    ...person,
+                    type: 'person',
+                    children: [], // People are always leaf nodes in this model
+                });
+            }
+        });
+
+        // 3. Create a single virtual root to hold the entire structure
+        const virtualRoot = {
+            id: 'virtual-root',
+            name: 'Organization',
+            role: 'Company Structure',
+            type: 'virtual',
+            children: [skeletonRoot], // The skeleton is the only child of the root
+        };
 
         // --- Build the HashMap for metadata ---
         const processedMetadataMap = new Map();
@@ -58,7 +95,7 @@ const OrgHierarchyTree = ({ setTeamCount }) => { // This is now the main contain
             const allRoles = new Set([node.role]);
             const allNames = [node.name.toLowerCase()];
 
-            if (node.children && node.children.length > 0) {
+            if (node.children?.length > 0) {
                 for (const child of node.children) {
                     const childMetadata = getTeamMetadata(child);
                     teamSize += childMetadata.teamSize;
@@ -69,44 +106,104 @@ const OrgHierarchyTree = ({ setTeamCount }) => { // This is now the main contain
             return { teamSize, allRoles, allNames };
         };
 
-        rootNodes.forEach(rootNode => {
-            const metadata = getTeamMetadata(rootNode);
-            processedMetadataMap.set(rootNode.id, metadata);
-        });
+        const populateMetadataForAllNodes = (node) => {
+            if (!node) return;
+            processedMetadataMap.set(node.id, getTeamMetadata(node));
+            if (node.children) {
+                node.children.forEach(populateMetadataForAllNodes);
+            }
+        };
 
-        return { processedTreeData: rootNodes, processedMetadataMap };
+        populateMetadataForAllNodes(virtualRoot);
+        // The entire tree data is now the single virtual root
+        return { processedTreeData: [virtualRoot], processedMetadataMap };
     };
 
+    const handleNodeClick = (nodeId) => {
+        setFocusNodeId(nodeId);
+    };
+
+    const resetFocus = () => {
+        setFocusNodeId(null);
+    };
+
+    // --- Search & Focus Logic ---
+    const findNodeAndPath = (node, query, path = []) => {
+        const currentPath = [...path, node.id];
+        if (node.name.toLowerCase().includes(query.toLowerCase()) || (node.role && node.role.toLowerCase().includes(query.toLowerCase()))) {
+            return currentPath;
+        }
+
+        if (node.children) {
+            for (const child of node.children) {
+                const foundPath = findNodeAndPath(child, query, currentPath);
+                if (foundPath) return foundPath;
+            }
+        }
+        return null;
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (!searchTerm.trim()) {
+            setHighlightedNodeId(null);
+            setHighlightedPath([]);
+            return;
+        }
+
+        const path = findNodeAndPath(treeData[0], searchTerm);
+
+        if (path) {
+            const targetNodeId = path[path.length - 1];
+            setHighlightedPath(path);
+            setHighlightedNodeId(targetNodeId);
+        } else {
+            toast.info("No person or role found matching your query.");
+            setHighlightedNodeId(null);
+            setHighlightedPath([]);
+        }
+    };
+
+    // This effect triggers the pan/zoom animation when a node is highlighted
+    useEffect(() => {
+        if (highlightedNodeId && transformComponentRef.current) {
+            const { zoomToElement } = transformComponentRef.current;
+            const elementId = `node-${highlightedNodeId}`;
+            // The timeout gives React a moment to render the expanded nodes before we try to zoom
+            setTimeout(() => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    zoomToElement(elementId, 1.2, 300); // Zoom to 120% scale over 300ms
+                }
+            }, 100);
+        }
+    }, [highlightedNodeId]);
+
     // useMemo ensures this complex filtering/sorting only re-runs when dependencies change
-    const visibleTeams = useMemo(() => {
+    const visibleTree = useMemo(() => {
         if (!treeData.length) return [];
 
-        // 1. Filtering (Instantaneous)
-        const lowerFilterTerm = filterTerm.toLowerCase();
-        const filtered = filterTerm
-            ? treeData.filter(rootNode => {
-                const metadata = teamMetadataMap.get(rootNode.id);
-                if (!metadata) return false;
-                // Check if any name or role in the entire branch matches
-                return metadata.allNames.some(name => name.includes(lowerFilterTerm)) || 
-                       Array.from(metadata.allRoles).some(role => role.toLowerCase().includes(lowerFilterTerm));
-              })
-            : treeData;
+        let baseNode = treeData[0]; // Start with the virtual root
 
-        // 2. Sorting (Instantaneous)
-        return [...filtered].sort((a, b) => {
-            switch (sortMethod) {
-                case 'team-size-desc':
-                    return teamMetadataMap.get(b.id).teamSize - teamMetadataMap.get(a.id).teamSize;
-                case 'team-size-asc':
-                    return teamMetadataMap.get(a.id).teamSize - teamMetadataMap.get(b.id).teamSize;
-                case 'name-asc':
-                    return a.name.localeCompare(b.name);
-                default:
-                    return 0;
-            }
-        });
-    }, [treeData, teamMetadataMap, sortMethod, filterTerm]);
+        // If a focus node is set, find it in the tree
+        if (focusNodeId) {
+            const findNode = (node, id) => {
+                if (node.id === id) return node;
+                if (node.children) {
+                    for (const child of node.children) {
+                        const found = findNode(child, id);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            };
+            baseNode = findNode(baseNode, focusNodeId) || baseNode;
+        }
+
+        // The tree no longer needs sorting or filtering, just return the base node.
+        return baseNode;
+
+    }, [treeData, teamMetadataMap, focusNodeId]);
 
     if (loading) return <p>Loading organization hierarchy...</p>;
 
@@ -114,36 +211,46 @@ const OrgHierarchyTree = ({ setTeamCount }) => { // This is now the main contain
         <>
             <div className="card" style={{ marginTop: '32px' }}>
                 <div className="hierarchy-controls">
-                    <div className="search-form">
+                    <form onSubmit={handleSearch} className="search-form" style={{ flexGrow: 1 }}>
                         <input
                             type="text"
-                            placeholder="Filter by name or role..."
-                            value={filterTerm}
-                            onChange={e => setFilterTerm(e.target.value)}
+                            placeholder="Find by name or role..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            style={{ width: '100%', maxWidth: '400px' }}
                         />
+                        <button type="submit" className="action-btn sort-btn">Search</button>
+                        {searchTerm && <button type="button" onClick={() => { setSearchTerm(''); setHighlightedNodeId(null); setHighlightedPath([]); }} className="action-btn cancel-btn">Clear</button>}
+                    </form>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        {focusNodeId && <button onClick={resetFocus} className="action-btn sort-btn">Show Full Organization</button>}
+
                     </div>
-                    <select value={sortMethod} onChange={e => setSortMethod(e.target.value)}>
-                        <option value="name-asc">Sort by Manager Name</option>
-                        <option value="team-size-desc">Sort by Team Size (Desc)</option>
-                        <option value="team-size-asc">Sort by Team Size (Asc)</option>
-                    </select>
                 </div>
             </div>
 
             <div className="hierarchy-vertical-stack">
-                {visibleTeams.length > 0 ? (
-                    visibleTeams.map(rootNode => (
-                        <div key={rootNode.id} className="org-chart-wrapper card">
-                            <ul className="tree-root">
-                                <RecursiveTeamNode 
-                                    node={{ data: rootNode, children: rootNode.children }} 
-                                    teamSize={teamMetadataMap.get(rootNode.id)?.teamSize} 
-                                />
-                            </ul>
-                        </div>
-                    ))
-                ) : (
-                    <p>No teams match your filter criteria.</p>
+                {visibleTree && visibleTree.children && visibleTree.children.length > 0 ? (
+                    <div className="org-chart-wrapper card">
+                        <TransformWrapper minScale={0.2} initialScale={0.8} wheel={{ step: 0.1 }} ref={transformComponentRef}>
+                            <TransformComponent wrapperClass="transform-wrapper-full">
+                                <ul className="tree-root">
+                                    {/* We map over the children of the root, as the root itself is just a container */}
+                                    {visibleTree.children.map(childNode => (
+                                        <RecursiveTeamNode
+                                            key={childNode.id}
+                                            node={childNode}
+                                            teamMetadataMap={teamMetadataMap}
+                                            onNodeClick={handleNodeClick}
+                                            highlightedNodeId={highlightedNodeId}
+                                            highlightedPath={highlightedPath}
+                                        />
+                                    ))}
+                                </ul>
+                            </TransformComponent>
+                        </TransformWrapper>
+                    </div>) : (
+                    <p style={{ marginTop: '20px', textAlign: 'center' }}>No results match your filter criteria.</p>
                 )}
             </div>
         </>

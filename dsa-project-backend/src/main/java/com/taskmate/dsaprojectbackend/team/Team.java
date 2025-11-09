@@ -1,15 +1,16 @@
 package com.taskmate.dsaprojectbackend.team;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.taskmate.dsaprojectbackend.person.Person;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import java.util.Set;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.HashSet;
-import com.taskmate.dsaprojectbackend.person.Person;
 
 @Entity
 public class Team {

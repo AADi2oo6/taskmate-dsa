@@ -1,4 +1,4 @@
-package com.taskmate.dsaprojectbackend;
+package com.taskmate.dsaprojectbackend.common;
 
 import java.util.HashMap;
 import java.util.Map;

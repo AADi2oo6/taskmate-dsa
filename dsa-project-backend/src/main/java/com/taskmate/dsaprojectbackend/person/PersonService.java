@@ -20,7 +20,7 @@ import com.taskmate.dsaprojectbackend.common.Operation;
 
 @Service
 public class PersonService {
-    private final String CSV_FILE_PATH = Paths.get("../people_data.csv").toAbsolutePath().toString();
+    private final String CSV_FILE_PATH = Paths.get("people_data.csv").toAbsolutePath().toString();
     private final LinkedListStack<Operation> undoStack = new LinkedListStack<>();
     private final LinkedListStack<Operation> redoStack = new LinkedListStack<>();
     private final AtomicInteger idCounter = new AtomicInteger(1);

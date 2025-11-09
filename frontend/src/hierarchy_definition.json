@@ -1,0 +1,71 @@
+{
+    "role": "CTO",
+    "children": [
+        {
+            "role": "Project Manager",
+            "children": [
+                { "role": "Scrum Master" },
+                { "role": "Business Analyst" },
+                { "role": "Product Manager" },
+                { "role": "Product Owner" },
+                { "role": "Project Lead" },
+                { "role": "UI/UX Designer" },
+                { "role": "UX Researcher" }
+            ]
+        },
+        {
+            "role": "Software Architect",
+            "children": [
+                { "role": "Cloud Architect" },
+                { "role": "Software Developer" },
+                { "role": "Full Stack Developer" },
+                { "role": "Front-End Developer" },
+                { "role": "Back-End Developer" },
+                { "role": "UI Developer" },
+                { "role": "Web Developer" }
+            ]
+        },
+        {
+            "role": "QA Lead",
+            "children": [
+                { "role": "QA Engineer" },
+                { "role": "Software Tester" }
+            ]
+        },
+        {
+            "role": "Mobile Development Lead",
+            "children": [
+                { "role": "Mobile App Developer" }
+            ]
+        },
+        {
+            "role": "Data Scientist",
+            "children": [
+                { "role": "Data Analyst" },
+                { "role": "Data Engineer" }
+            ]
+        },
+        {
+            "role": "AI Lead",
+            "children": [
+                { "role": "Machine Learning Engineer" },
+                { "role": "AI Engineer" },
+                { "role": "AI Researcher" }
+            ]
+        },
+        {
+            "role": "DevOps Engineer",
+            "children": [
+                { "role": "System Administrator" },
+                { "role": "System Analyst" },
+                { "role": "System Engineer" },
+                { "role": "Network Engineer" },
+                { "role": "Database Administrator" },
+                { "role": "Cloud Engineer" },
+                { "role": "Cybersecurity Analyst" },
+                { "role": "Information Security Analyst" },
+                { "role": "Security Specialist" }
+            ]
+        }
+    ]
+}

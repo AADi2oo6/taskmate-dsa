@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaCrown, FaTimes } from 'react-icons/fa';
 
 const MemberAvatar = ({ person }) => (
@@ -8,9 +7,7 @@ const MemberAvatar = ({ person }) => (
     </div>
 );
 
-const TeamCard = ({ team, lead, onDelete }) => {
-    const navigate = useNavigate();
-
+const TeamCard = ({ team, lead, onDelete, onManage }) => {
     const handleDeleteClick = (e) => {
         e.stopPropagation(); // Prevent any parent click events
         onDelete(team.id);
@@ -31,7 +28,7 @@ const TeamCard = ({ team, lead, onDelete }) => {
                 {team.members.slice(0, 5).map(member => <MemberAvatar key={member.id} person={member} />)}
                 {team.members.length > 5 && <div className="avatar-more">+{team.members.length - 5}</div>}
             </div>
-            <button className="manage-btn" onClick={() => navigate(`/team/${team.id}`)}>Manage</button>
+            <button className="manage-btn" onClick={onManage}>Manage</button>
         </div>
     );
 };
