@@ -5,6 +5,9 @@ import java.util.EmptyStackException;
 
 public class LinkedListStack<T> {
 
+    public void clear() {
+    }
+
     private static class Node<T> {
         private T data;
         private Node<T> next;

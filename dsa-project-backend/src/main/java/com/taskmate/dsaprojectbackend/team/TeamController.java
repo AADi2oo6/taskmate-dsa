@@ -2,6 +2,8 @@ package com.taskmate.dsaprojectbackend.team;
 
 import java.util.List;
 import java.util.Map;
+import com.taskmate.dsaprojectbackend.team.TeamDTO; // <-- Add this import
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +25,13 @@ public class TeamController {
     private TeamService teamService;
 
     @GetMapping
-    public List<Team> getAllTeams() {
+    public List<TeamDTO> getAllTeams() { // <-- Change return type
         return teamService.getAllTeams();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Team> getTeamById(@PathVariable int id) {
-        Team team = teamService.getTeamById(id);
+    public ResponseEntity<TeamDTO> getTeamById(@PathVariable int id) { // <-- Change return type
+        TeamDTO team = teamService.getTeamById(id);
         if (team != null) {
             return ResponseEntity.ok(team);
         } else {
@@ -38,13 +40,13 @@ public class TeamController {
     }
 
     @PostMapping
-    public Team createTeam(@RequestBody CreateTeamRequest request) {
+    public TeamDTO createTeam(@RequestBody CreateTeamRequest request) { // <-- Change return type
         return teamService.createTeam(request);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Team> updateTeam(@PathVariable int id, @RequestBody CreateTeamRequest request) {
-        Team updatedTeam = teamService.updateTeam(id, request);
+    public ResponseEntity<TeamDTO> updateTeam(@PathVariable int id, @RequestBody CreateTeamRequest request) { // <-- Change return type
+        TeamDTO updatedTeam = teamService.updateTeam(id, request);
         if (updatedTeam != null) {
             return ResponseEntity.ok(updatedTeam);
         } else {
