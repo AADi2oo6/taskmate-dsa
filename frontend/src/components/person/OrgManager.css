@@ -660,6 +660,21 @@
     color: #ef4444;
 }
 
+.member-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.member-filters input, .member-filters select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.team-members-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.team-stats { font-size: 0.85rem; color: var(--text-secondary); }
+
 .modal-actions {
     display: flex;
     justify-content: flex-end;
@@ -677,6 +692,7 @@
 .hierarchy-controls {
     display: flex;
     justify-content: space-between;
+    gap: 20px;
     align-items: center;
 }
 
@@ -689,16 +705,22 @@
 }
 
 .org-chart-wrapper {
-    padding: 32px;
-    background-color: var(--card-bg);
+    padding: 24px;
+    background-color: #f9fafb; /* Slightly off-white background */
+    /* Subtle background pattern for texture */
+    background-image: radial-gradient(circle at 1px 1px, #e5e7eb 1px, transparent 0);
+    background-size: 20px 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     overflow-x: auto; /* Allow horizontal scrolling for wide charts */
 }
 
 .tree-root {
     list-style: none;
     padding: 0;
-    font-family: 'Inter', sans-serif;
-    display: inline-flex; /* Allows chart to grow naturally based on its content */
+    display: inline-flex; /* Allows chart to grow naturally */
+    /* Add padding to give the chart some breathing room from the container edges */
+    padding: 32px;
 }
 
 .hierarchy-node {
@@ -708,103 +730,121 @@
     align-items: center;
 }
 
-.node-content {
+.node-card { 
     display: flex;
     align-items: center;
     gap: 12px;
-    position: relative;
-    cursor: pointer;
-}
-
-.node-card { 
-    display: flex; 
-    align-items: center; 
-    gap: 12px; 
-    background-color: #ffffff;
+    background-color: #fff;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 12px;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    min-width: 220px;
+    min-width: 240px; /* Increase min-width for better spacing */
     z-index: 2; /* Keep card above the lines */
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+/* Only apply hover effects to actual people, not the root 'Organization' card */
+.node-card[title]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+}
+
+/* --- Node Card Redesign --- */
+/* --- New styles for Role Group nodes --- */
+.role-node-card {
+    background-color: #f8fafc; /* Lighter background for roles */
+    border-style: dashed; /* Dashed border to indicate a container */
+    border-color: #cbd5e1;
+    min-width: 220px;
+}
+.role-node-card .node-avatar { background-color: #e2e8f0; color: #475569; }
+.role-node-card .node-name { font-weight: 600; color: #334155; }
+
+/* --- New styles for Person nodes --- */
+.person-node-card {
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* --- Style for Highlighted Node --- */
+.node-card.highlighted {
+    box-shadow: 0 0 0 3px var(--active-blue), 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
 }
 
 /* Vertical line coming DOWN from a parent card */
-.node-content::after {
+li:not(:only-child) > .node-card::after {
     content: '';
     position: absolute;
     bottom: -20px;
     left: 50%;
-    transform: translateX(-50%);
     width: 2px;
     height: 20px;
-    background-color: #cbd5e1;
-}
-
-.node-children-container {
-    position: relative;
-    padding-top: 20px; /* Space between parent and children */
+    background-color: var(--border-color);
+    transform: translateX(-50%);
 }
 
 /* Hide the downward connector if the node has no children or is collapsed */
-.hierarchy-node:not(:has(.node-children)) .node-content::after {
+.hierarchy-node:not(:has(.node-children)) .node-card::after {
     display: none;
 }
 
-/* Horizontal line connecting all children */
+/* Horizontal line connecting siblings */
 .node-children::before {
     content: '';
     position: absolute;
-    top: 0;
+    top: -20px;
     left: 50%;
     right: 50%;
-    height: 2px;
-    background-color: #cbd5e1;
+    border-top: 2px solid var(--border-color);
     z-index: 1;
+}
+
+/* Clip the horizontal line for the first and last children to create clean T-junctions */
+.node-children .hierarchy-node:first-child::before {
+    left: 50%;
+}
+.node-children .hierarchy-node:last-child::before {
+    right: 50%;
 }
 
 .node-children {
     list-style: none;
     padding-left: 0;
     display: flex;
-    gap: 20px; /* Space between sibling nodes */
+    gap: 24px; /* Increase gap for more breathing room */
     position: relative;
+    padding-top: 50px; /* Increased space between parent and children row */
 }
 
 /* Vertical line coming UP from a child card */
-.hierarchy-node:not(.tree-root > .hierarchy-node) .node-content::before {
+.hierarchy-node::before {
     content: '';
     position: absolute;
     top: -20px;
     left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
+    width: 2px; /* Make lines slightly thicker for visibility */
     height: 20px;
-    background-color: #cbd5e1;
+    background-color: var(--border-color);
+    transform: translateX(-50%);
 }
 
-.node-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #e0e7ff;
-    color: #4338ca;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    flex-shrink: 0;
+/* Create the curved "elbow" bend for the horizontal connector */
+.node-children::before, .hierarchy-node::before {
+    border-radius: 0; /* Reset any previous radius */
 }
 
-.node-info p { margin: 0; }
-.node-name { font-weight: 600; color: var(--text-primary); }
-.node-role { font-size: 0.875rem; color: var(--text-secondary); }
+/* Add rounded corners to the connecting lines for a softer, more organic look */
+.hierarchy-node:not(:only-child)::before {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
 
-.toggle-icon {
-    color: #94a3b8;
-    font-size: 1rem;
-    /* The node-content is now the click target, so this icon is just visual */
-    margin-right: 8px;
+.node-children::before {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
 }
 
 .node-team-size-badge {
@@ -814,10 +854,36 @@
     gap: 6px;
     background-color: #f1f5f9;
     color: #475569;
-    font-size: 0.8rem;
     font-weight: 600;
     padding: 4px 8px;
-    border-radius: 9999px;
+    border-radius: 6px;
+}
+
+.node-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e0e7ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+.person-node-card .node-avatar {
+    background-color: #e0e7ff;
+    color: #4338ca;
+}
+
+.node-info {
+    line-height: 1.4;
+}
+
+
+/* Ensure the pan-and-zoom wrapper fills its container */
+.transform-wrapper-full {
+    width: 100%;
+    height: 100%;
 }
 
 .activity-log-list {

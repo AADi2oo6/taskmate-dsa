@@ -31,11 +31,11 @@ const memberReducer = (state, action) => {
     }
 };
 
-const TeamModal = ({ team, onClose, onTeamCreated }) => {
-    const [activeTab, setActiveTab] = useState('members');
+const TeamModal = ({ team, onClose, onTeamCreated, people }) => {
     const [teamName, setTeamName] = useState(team ? team.name : '');
     const [leadId, setLeadId] = useState(team ? team.leadId : null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState(''); // New state for role filter
 
     const [state, dispatch] = useReducer(memberReducer, {
         availablePeople: [],
@@ -43,27 +43,21 @@ const TeamModal = ({ team, onClose, onTeamCreated }) => {
     });
 
     useEffect(() => {
-        const fetchPeople = async () => {
-            try {
-                const response = await axios.get('http://localhost:8082/api/people');
-                dispatch({ 
-                    type: 'SET_PEOPLE', 
-                    allPeople: response.data, 
-                    teamMembers: team ? team.members : [] 
-                });
-            } catch (error) {
-                toast.error("Failed to fetch people.");
-            }
-        };
-        fetchPeople();
-    }, [team]); // Rerun if the team prop changes
+        // Initialize state based on the people prop from TeamsPage
+        dispatch({
+            type: 'SET_PEOPLE',
+            allPeople: people,
+            teamMembers: team ? team.members : []
+        });
+    }, [team, people]); // Rerun if the team or people props change
 
     const handleSaveTeam = async () => {
         if (!teamName.trim()) {
             toast.error("Team name cannot be empty.");
             return;
         }
-        const memberIds = state.teamMembers.map(m => m.id);
+        // Format the member IDs into a single delimited string as requested.
+        const memberIds = state.teamMembers.map(m => m.id).join(';');
         const requestData = { teamName, memberIds, leadId };
 
         try {
@@ -95,36 +89,54 @@ const TeamModal = ({ team, onClose, onTeamCreated }) => {
         dispatch({ type: 'REMOVE_MEMBER', payload: person });
     };
 
+    // --- New Feature Logic ---
+    // Get a unique, sorted list of roles for the filter dropdown
+    const availableRoles = [...new Set(people.map(p => p.role))].sort();
+
+    // Calculate total work hours for the current team members
+    const totalTeamHours = state.teamMembers.reduce((sum, member) => sum + (member.totalWorkHour || 0), 0);
+
     const filteredAvailablePeople = state.availablePeople.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        // Filter by search term
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        // AND filter by selected role (if any)
+        (roleFilter ? p.role === roleFilter : true)
     );
 
     return (
         <div className="modal-overlay">
             <div className="modal-content">
                 <div className="modal-header">
-                    <h2>{team ? `Manage: ${team.name}` : 'Create New Team'}</h2>
-                    <div className="modal-tabs">
-                        <button className={activeTab === 'members' ? 'active' : ''} onClick={() => setActiveTab('members')}>Members</button>
-                        <button className={activeTab === 'tasks' ? 'active' : ''} onClick={() => setActiveTab('tasks')} disabled>Assigned Tasks</button>
-                        <button className={activeTab === 'resources' ? 'active' : ''} onClick={() => setActiveTab('resources')} disabled>Assigned Resources</button>
-                        <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>Settings</button>
-                    </div>
+                    <h2>{team ? `Manage Team` : 'Create New Team'}</h2>
                 </div>
 
                 <div className="modal-body">
-                    {activeTab === 'members' && (
+                    <div className="panel">
+                        <h3>Team Details</h3>
+                        <div className="form-group" style={{ marginBottom: '24px' }}>
+                            <label htmlFor="teamName">Team Name</label>
+                            <input
+                                id="teamName"
+                                type="text"
+                                value={teamName}
+                                onChange={(e) => setTeamName(e.target.value)}
+                                placeholder="e.g., Frontend Developers"
+                            />
+                        </div>
                         <div className="member-management">
-                            <div className="panel">
+                            <div className="panel" style={{padding: 0}}>
                                 <h3>Available People</h3>
-                                <div className="search-box">
-                                    <FaSearch />
+                                <div className="member-filters">
                                     <input
                                         type="text"
                                         placeholder="Search people..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
+                                    <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+                                        <option value="">All Roles</option>
+                                        {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
+                                    </select>
                                 </div>
                                 <ul className="member-list">
                                     {filteredAvailablePeople.map(p => (
@@ -134,8 +146,13 @@ const TeamModal = ({ team, onClose, onTeamCreated }) => {
                                     ))}
                                 </ul>
                             </div>
-                            <div className="panel">
-                                <h3>Team Members ({state.teamMembers.length})</h3>
+                            <div className="panel" style={{padding: 0}}>
+                                <div className="team-members-header">
+                                    <h3>Team Members ({state.teamMembers.length})</h3>
+                                    <div className="team-stats">
+                                        Total Hours: <strong>{totalTeamHours} / week</strong>
+                                    </div>
+                                </div>
                                 <ul className="member-list">
                                     {state.teamMembers.map(p => (
                                         <li key={p.id} className={p.id === leadId ? 'lead' : ''}>
@@ -153,36 +170,7 @@ const TeamModal = ({ team, onClose, onTeamCreated }) => {
                                 </ul>
                             </div>
                         </div>
-                    )}
-
-                    {activeTab === 'tasks' && (
-                        <div className="panel">
-                            <p>Assigned Tasks content...</p>
-                        </div>
-                    )}
-
-                    {activeTab === 'resources' && (
-                        <div className="panel">
-                            <h3>Assigned Resources</h3>
-                            <p>Assigned Resources content...</p>
-                        </div>
-                    )}
-
-                    {activeTab === 'settings' && (
-                        <div className="panel">
-                            <h3>Team Settings</h3>
-                            <div className="form-group">
-                                <label htmlFor="teamName">Team Name</label>
-                                <input
-                                    id="teamName"
-                                    type="text"
-                                    value={teamName}
-                                    onChange={(e) => setTeamName(e.target.value)}
-                                    placeholder="e.g., Frontend Developers"
-                                />
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
 
                 <div className="modal-actions">
