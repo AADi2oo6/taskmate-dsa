@@ -1,6 +1,10 @@
 // src/main/java/com/taskmate/dsa-project-backend/task/TaskService.java
 package com.taskmate.dsaprojectbackend.task;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -8,15 +12,10 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import jakarta.annotation.PostConstruct;
-
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
-    private final String CSV_FILE_PATH = Paths.get("tasks_data.csv").toAbsolutePath().toString();
+    private final String CSV_FILE_PATH = Paths.get("../tasks_data.csv").toAbsolutePath().toString();
 
     @Autowired
     public TaskService(TaskRepository taskRepository) {
