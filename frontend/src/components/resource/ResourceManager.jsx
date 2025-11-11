@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import Select from 'react-select'; 
 import { format, parseISO } from 'date-fns';
-import { Timeline } from 'vis-timeline/esnext'; // For the Gantt chart
+// import { Timeline } from 'vis-timeline/esnext'; // For the Gantt chart
 import { Network } from 'vis-network/esnext/esm/vis-network.js'; // For the new relationship graph
 import 'vis-timeline/styles/vis-timeline-graph2d.css';
 import 'vis-network/styles/vis-network.css'; // CSS for the new graph
@@ -136,7 +136,7 @@ const ResourceManager = () => {
     };
     
     // Ref for the timeline element
-    const timelineRef = React.useRef(null);
+    // const timelineRef = React.useRef(null);
     const networkRef = React.useRef(null); // Ref for the new network graph
 // --- useEffect for the new Team-Resource Network Graph ---
 useEffect(() => {
@@ -214,46 +214,29 @@ allocations.forEach((alloc) => {
     });
   }
 
-  // Resource -> Tasks
-  if (Array.isArray(alloc.tasks) && alloc.tasks.length > 0) {
-    alloc.tasks.forEach((task) => {
-      const taskIdRaw = task?.id ?? null;
-      if (!taskIdRaw) {
-        console.warn("Allocation has task without id:", alloc, task);
-        return;
-      }
-      const taskNodeId = `task_${taskIdRaw}`;
-      const edgeId = `${resourceNodeId}_${taskNodeId}`;
-      if (!edgeSet.has(edgeId)) {
-        edges.push({
-          from: resourceNodeId,
-          to: taskNodeId,
-          arrows: { to: { enabled: true, scaleFactor: 0.8 } },
-          color: { color: "#000" },
-          width: 2,
+    // Resource -> Tasks
+    if (Array.isArray(alloc.tasks) && alloc.tasks.length > 0) {
+        alloc.tasks.forEach((task) => {
+            const taskIdRaw = task?.id ?? null;
+            if (!taskIdRaw) {
+                console.warn("Allocation has task without id:", alloc, task);
+                return;
+            }
+            const taskNodeId = `task_${taskIdRaw}`;
+            const edgeId = `${resourceNodeId}_${taskNodeId}`;
+            if (!edgeSet.has(edgeId)) {
+                edges.push({
+                    from: resourceNodeId,
+                    to: taskNodeId,
+                    arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+                    color: { color: "#000" },
+                    width: 2,
+                });
+                edgeSet.add(edgeId);
+            }
         });
-        edgeSet.add(edgeId);
-      }
-    });
-  }
+    }
 });
-
-
-      alloc.tasks?.forEach(task => {
-        const taskNodeId = `task_${task.id}`;
-        const edgeId = `${resourceNodeId}_${taskNodeId}`;
-        if (!edgeSet.has(edgeId)) {
-          edges.push({
-            from: resourceNodeId,
-            to: taskNodeId,
-            arrows: { to: { enabled: true, scaleFactor: 0.8 } },
-            color: { color: "#000", highlight: "#ff0000", hover: "#ff0000" },
-            width: 2,
-          });
-          edgeSet.add(edgeId);
-        }
-      });
-    });
 
     const data = { nodes: graphNodes, edges };
 
@@ -292,7 +275,7 @@ allocations.forEach((alloc) => {
       interaction: { hover: true, navigationButtons: true, keyboard: true },
     };
 
-    // --- Destroy old graph before re-rendering ---
+    // --- Destroying the pervious graph before re-rendering here ---
     if (networkRef.current.networkInstance) {
       networkRef.current.networkInstance.destroy();
       networkRef.current.innerHTML = "";
@@ -310,39 +293,35 @@ allocations.forEach((alloc) => {
   }
 }, [allocations, teams, resources, tasks]);
 
-    useEffect(() => {
-        if (timelineRef.current && allocations.length > 0) {
-            // The items are the bars on the timeline
-            const items = allocations.map(alloc => ({
-                id: alloc.id,
-                content: `${alloc.teams?.map(t => t.name).join(', ')} (${alloc.sprintName})`,
-                start: parseISO(alloc.startTime),
-                end: parseISO(alloc.endTime),
-                group: alloc.resourceId, // Group by resource
-            }));
+    // useEffect(() => {
+    //     if (timelineRef.current && allocations.length > 0) {
+    //         // The items are the bars on the timeline
+    //         const items = allocations.map(alloc => ({
+    //             id: alloc.id,
+    //             content: `${alloc.teams?.map(t => t.name).join(', ')} (${alloc.sprintName})`,
+    //             start: parseISO(alloc.startTime),
+    //             end: parseISO(alloc.endTime),
+    //             group: alloc.resourceId, // Group by resource
+    //         }));
 
-            // The groups are the lanes on the timeline (our resources)
-            const groups = resources.map(r => ({
-                id: r.id,
-                content: r.name,
-            }));
+    //         // The groups are the lanes on the timeline (our resources)
+    //         const groups = resources.map(r => ({
+    //             id: r.id,
+    //             content: r.name,
+    //         }));
 
-            const options = {
-                stack: false,
-                zoomMin: 1000 * 60 * 60 * 24, // One day in milliseconds
-                zoomMax: 1000 * 60 * 60 * 24 * 30 * 6, // Approx 6 months
-            };
+    //         const options = {
+    //             stack: false,
+    //             zoomMin: 1000 * 60 * 60 * 24, // One day in milliseconds
+    //             zoomMax: 1000 * 60 * 60 * 24 * 30 * 6, // Approx 6 months
+    //         };
 
-            const timeline = new Timeline(timelineRef.current, items, groups, options);
+    //         const timeline = new Timeline(timelineRef.current, items, groups, options);
 
-            return () => timeline.destroy();
-        }
-    }, [allocations, resources]);
+    //         return () => timeline.destroy();
+    //     }
+    // }, [allocations, resources]);
 
-    // --- useEffect for the new Team-Resource Network Graph ---
-    
-
-    // --- New state and handler for adding a resource ---
     const [newResourceName, setNewResourceName] = useState('');
 
     const handleAddResource = async (e) => {
@@ -466,14 +445,14 @@ allocations.forEach((alloc) => {
                 </tbody>
             </table>
 
-            <div className="card" style={{ marginTop: '32px' }}>
+            {/* <div className="card" style={{ marginTop: '32px' }}>
                 <h2>Resource Allocation Timeline (Graph)</h2>
                 {allocations.length > 0 ? (
                     <div ref={timelineRef} />
                 ) : (
                     <p>No allocations to display in the timeline. Add an allocation to see it here.</p>
                 )}
-            </div>
+            </div> */}
 
             <div className="card" style={{ marginTop: '32px' }}>
                 <h2>Team and Resource Relationship Graph</h2>

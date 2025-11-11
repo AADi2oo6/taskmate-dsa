@@ -14,6 +14,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
@@ -22,6 +31,11 @@ public class TaskController {
 
     public TaskController(TaskService taskService) {
         this.taskService = taskService;
+    }
+
+    @GetMapping("/sorted")
+    public List<Task> getSortedTasks(@RequestParam String by) {
+        return taskService.getSortedTasks(by);
     }
 
     @GetMapping

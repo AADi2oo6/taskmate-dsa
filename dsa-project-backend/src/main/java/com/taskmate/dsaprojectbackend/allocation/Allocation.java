@@ -2,6 +2,7 @@ package com.taskmate.dsaprojectbackend.allocation;
 
 import com.taskmate.dsaprojectbackend.resource.Resource;
 import com.taskmate.dsaprojectbackend.team.Team;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.taskmate.dsaprojectbackend.person.Person;
 import com.taskmate.dsaprojectbackend.task.Task;
 import jakarta.persistence.*;
@@ -19,9 +20,12 @@ public class Allocation {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    @ManyToOne
-    @JoinColumn(name = "resource_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "resource_id", nullable = false)
+    @JsonIgnoreProperties("allocations") // Prevent circular JSON reference
     private Resource resource;
+
+    
 
     @ManyToOne
     @JoinColumn(name = "responsible_person_id")

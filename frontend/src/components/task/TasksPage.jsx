@@ -8,15 +8,21 @@ import DependencyBadge from './DependencyBadge'; // Import dependency badge
 import TaskDependencyGraph from './TaskDependencyGraph'; // Import dependency graph
 import AddDependencyModal from './AddDependencyModal'; // Import add dependency modal
 
+// We no longer need the frontend sorter
+// import { heapSort, byPriority, byDeadline, byPriorityAndDeadline } from './taskSorter.js';
+
 const API_URL = 'http://localhost:8082/api/tasks';
 
 const TasksPage = ({ setTaskCount }) => {
-    const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState([]); // This is our main list
     const [newTaskDescription, setNewTaskDescription] = useState('');
     const [newTaskDate, setNewTaskDate] = useState('');
     const [newTaskRole, setNewTaskRole] = useState('');
     const [newTaskPriority, setNewTaskPriority] = useState(3); // Default medium priority
     const [newTaskDeadline, setNewTaskDeadline] = useState('');
+    
+    // We no longer need the displayedTasks state
+    // const [displayedTasks, setDisplayedTasks] = useState([]);
     
     // NEW state for editing functionality
     const [isEditing, setIsEditing] = useState(false);
@@ -56,7 +62,9 @@ const TasksPage = ({ setTaskCount }) => {
     const fetchTasks = async () => {
         try {
             const response = await axios.get(API_URL);
-            setTasks(response.data);
+            setTasks(response.data); // Set the master list
+            // setDisplayedTasks(response.data); // No longer needed
+            
             const countResponse = await axios.get(`${API_URL}/count`);
             setTaskCount(countResponse.data);
         } catch (error) {
@@ -82,6 +90,7 @@ const TasksPage = ({ setTaskCount }) => {
             console.error('Error fetching dependency graph:', error);
         }
     };
+
 
     // Refresh priority tasks every 2 minutes
     useEffect(() => {
@@ -246,6 +255,27 @@ const TasksPage = ({ setTaskCount }) => {
         }
     };
 
+    // --- UPDATED SORT HANDLERS ---
+    const handleSort = async (sortBy) => {
+        try {
+            // Call the new backend endpoint
+            const response = await axios.get(`${API_URL}/sorted?by=${sortBy}`);
+            // Set the 'tasks' state directly with the sorted data
+            setTasks(response.data);
+            toast.info(`Tasks sorted by ${sortBy}.`);
+        } catch (error) {
+            toast.error('Failed to sort tasks.');
+            console.error('Error sorting tasks:', error);
+        }
+    };
+
+    const resetSort = () => {
+        // The easiest way to reset is to just re-fetch the default list
+        fetchTasks(); 
+        toast.info('Sort reset.');
+    };
+    // --- END OF UPDATED SORT HANDLERS ---
+
     return (
         <div className="main-panel">
             <div className="panel-header">
@@ -353,6 +383,25 @@ const TasksPage = ({ setTaskCount }) => {
                 {isEditing && <button type="button" onClick={resetForm} className="action-btn cancel-btn">Cancel</button>}
             </form>
 
+            {/* --- UPDATED SORT BUTTONS --- */}
+            <div className="table-header" style={{ marginTop: '20px' }}>
+                <h2 style={{ margin: 0 }}>Current Tasks</h2>
+                <div>
+                    <button onClick={() => handleSort('priority')} className="action-btn sort-btn">
+                        Sort by Priority
+                    </button>
+                    <button onClick={() => handleSort('deadline')} className="action-btn sort-btn" style={{ marginLeft: '10px' }}>
+                        Sort by Deadline
+                    </button>
+                    <button onClick={() => handleSort('both')} className="action-btn sort-btn" style={{ marginLeft: '10px' }}>
+                        Sort by Both
+                    </button>
+                    <button onClick={resetSort} className="action-btn cancel-btn" style={{ marginLeft: '10px' }}>
+                        Reset Sort
+                    </button>
+                </div>
+            </div>
+
             <table className="people-table">
                 <thead>
                     <tr>
@@ -368,6 +417,8 @@ const TasksPage = ({ setTaskCount }) => {
                     </tr>
                 </thead>
                 <tbody>
+                    {/* --- UPDATED TABLE BODY --- */}
+                    {/* It now renders from 'tasks' */}
                     {tasks.length > 0 ? (
                         tasks.map(task => (
                             <tr key={task.id}>
