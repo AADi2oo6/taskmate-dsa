@@ -134,10 +134,181 @@ const ResourceManager = () => {
     const handleTaskSelectChange = (selectedOptions) => {
         setTaskIds(selectedOptions || []);
     };
-
+    
     // Ref for the timeline element
     const timelineRef = React.useRef(null);
     const networkRef = React.useRef(null); // Ref for the new network graph
+// --- useEffect for the new Team-Resource Network Graph ---
+useEffect(() => {
+
+
+  try {
+    if (!networkRef.current) return;
+
+    if (allocations.length === 0) {
+      networkRef.current.innerHTML = "<p>No allocations to display.</p>";
+      return;
+    }
+
+    // --- Create Node Sets ---
+    const teamGraphNodes = teams.map(team => ({
+      id: `team_${team.id}`,
+      label: team.name,
+      group: "teams",
+      shape: "box",
+      color: "#f8b195",
+    }));
+
+    const resourceGraphNodes = resources.map(resource => ({
+      id: `resource_${resource.id}`,
+      label: resource.name,
+      group: "resources",
+      shape: "ellipse",
+      color: "#99c1de",
+    }));
+
+    const taskGraphNodes = tasks.map(task => ({
+      id: `task_${task.id}`,
+      label: `Task: ${task.description}`,
+      group: "tasks",
+      shape: "diamond",
+      color: "#b5e48c",
+    }));
+
+    const graphNodes = [...teamGraphNodes, ...resourceGraphNodes, ...taskGraphNodes];
+    const edges = [];
+    const edgeSet = new Set();
+
+    // --- Build Edges (Team → Resource → Task) ---
+    // --- Build Edges (robust: skip if IDs missing, and log offending allocations) ---
+allocations.forEach((alloc) => {
+  // Try multiple ways to get the resource id (safe for different backend shapes)
+  const resourceIdRaw = alloc.resourceId ?? alloc.resource?.id ?? null;
+  if (!resourceIdRaw) {
+    console.warn("Allocation missing resource id:", alloc);
+    return; // skip this allocation since we cannot link it
+  }
+  const resourceNodeId = `resource_${resourceIdRaw}`;
+
+  // Teams -> Resource
+  if (Array.isArray(alloc.teams) && alloc.teams.length > 0) {
+    alloc.teams.forEach((team) => {
+      const teamIdRaw = team?.id ?? null;
+      if (!teamIdRaw) {
+        console.warn("Allocation has team without id:", alloc, team);
+        return;
+      }
+      const teamNodeId = `team_${teamIdRaw}`;
+      const edgeId = `${teamNodeId}_${resourceNodeId}`;
+      if (!edgeSet.has(edgeId)) {
+        edges.push({
+          from: teamNodeId,
+          to: resourceNodeId,
+          arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+          color: { color: "#000" },
+          width: 2,
+          label: alloc.sprintName ? `Sprint: ${alloc.sprintName}` : undefined,
+        });
+        edgeSet.add(edgeId);
+      }
+    });
+  }
+
+  // Resource -> Tasks
+  if (Array.isArray(alloc.tasks) && alloc.tasks.length > 0) {
+    alloc.tasks.forEach((task) => {
+      const taskIdRaw = task?.id ?? null;
+      if (!taskIdRaw) {
+        console.warn("Allocation has task without id:", alloc, task);
+        return;
+      }
+      const taskNodeId = `task_${taskIdRaw}`;
+      const edgeId = `${resourceNodeId}_${taskNodeId}`;
+      if (!edgeSet.has(edgeId)) {
+        edges.push({
+          from: resourceNodeId,
+          to: taskNodeId,
+          arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+          color: { color: "#000" },
+          width: 2,
+        });
+        edgeSet.add(edgeId);
+      }
+    });
+  }
+});
+
+
+      alloc.tasks?.forEach(task => {
+        const taskNodeId = `task_${task.id}`;
+        const edgeId = `${resourceNodeId}_${taskNodeId}`;
+        if (!edgeSet.has(edgeId)) {
+          edges.push({
+            from: resourceNodeId,
+            to: taskNodeId,
+            arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+            color: { color: "#000", highlight: "#ff0000", hover: "#ff0000" },
+            width: 2,
+          });
+          edgeSet.add(edgeId);
+        }
+      });
+    });
+
+    const data = { nodes: graphNodes, edges };
+
+    // --- Graph Options ---
+    const options = {
+      nodes: {
+        size: 25,
+        borderWidth: 2,
+        shadow: true,
+        font: { size: 14 },
+      },
+      edges: {
+        width: 2,
+        color: { color: "#000", highlight: "#ff0000", hover: "#ff0000" },
+        arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+        smooth: true,
+      },
+      physics: {
+        enabled: true,
+        solver: "repulsion",
+        repulsion: {
+          centralGravity: 0.02,
+          springLength: 250,
+          springConstant: 0.05,
+          nodeDistance: 180,
+          damping: 0.1,
+        },
+        stabilization: { iterations: 300 },
+      },
+      groups: {
+        teams: { color: "#f8b195" },
+        resources: { color: "#99c1de" },
+        tasks: { color: "#b5e48c" },
+      },
+      layout: { improvedLayout: true },
+      interaction: { hover: true, navigationButtons: true, keyboard: true },
+    };
+
+    // --- Destroy old graph before re-rendering ---
+    if (networkRef.current.networkInstance) {
+      networkRef.current.networkInstance.destroy();
+      networkRef.current.innerHTML = "";
+    }
+    console.log("🟦 Graph Nodes:", graphNodes);
+    console.log("🟩 Edges:", edges);
+
+    const network = new Network(networkRef.current, data, options);
+    networkRef.current.networkInstance = network;
+  } catch (error) {
+    console.error("Error rendering network graph:", error);
+    if (networkRef.current) {
+      networkRef.current.innerHTML = "<p style='color:red;'>Graph render failed. Check console for details.</p>";
+    }
+  }
+}, [allocations, teams, resources, tasks]);
 
     useEffect(() => {
         if (timelineRef.current && allocations.length > 0) {
@@ -169,63 +340,7 @@ const ResourceManager = () => {
     }, [allocations, resources]);
 
     // --- useEffect for the new Team-Resource Network Graph ---
-    useEffect(() => {
-        if (networkRef.current && allocations.length > 0 && teams.length > 0 && resources.length > 0) {
-            // Create nodes for teams and resources
-            const teamGraphNodes = teams.map(team => ({
-                id: `team_${team.id}`,
-                label: `Team: ${team.name}`,
-                group: 'teams',
-                shape: 'box',
-                color: '#f7a9a8', // Light red for teams
-            }));
-
-            const resourceGraphNodes = resources.map(resource => ({
-                id: `resource_${resource.id}`,
-                label: `Resource: ${resource.name}`,
-                group: 'resources',
-                shape: 'ellipse',
-                color: '#aedff7', // Light blue for resources
-            }));
-
-            const graphNodes = [...teamGraphNodes, ...resourceGraphNodes];
-
-            // Create edges from allocations
-            const graphEdges = [];
-            const edgeSet = new Set(); // To prevent duplicate edges for the same team-resource pair
-
-            allocations.forEach(alloc => {
-                const resourceNodeId = `resource_${alloc.resourceId}`;
-                alloc.teams?.forEach(team => {
-                    alloc.tasks?.forEach(task => {
-                        const teamNodeId = `team_${team.id}`;
-                        const edgeId = `${teamNodeId}_${resourceNodeId}_${task.id}`;
-
-                        if (!edgeSet.has(edgeId)) {
-                            graphEdges.push({
-                                from: teamNodeId,
-                                to: resourceNodeId,
-                                label: `${alloc.sprintName}\nTask: ${task.description}`, // Show sprint and task
-                                id: edgeId,
-                                arrows: 'to',
-                                font: { multi: true, size: 12 }, // Enable multiline labels
-                            });
-                            edgeSet.add(edgeId);
-                        }
-                    });
-                });
-            });
-
-            const data = { nodes: graphNodes, edges: graphEdges };
-            const options = {
-                nodes: { borderWidth: 2 },
-                edges: { color: '#666' },
-                physics: { solver: 'barnesHut', barnesHut: { gravitationalConstant: -5000 } },
-            };
-
-            new Network(networkRef.current, data, options);
-        }
-    }, [allocations, teams, resources]);
+    
 
     // --- New state and handler for adding a resource ---
     const [newResourceName, setNewResourceName] = useState('');
@@ -247,6 +362,7 @@ const ResourceManager = () => {
             console.error("Error adding resource:", error);
         }
     };
+    
 
     return (
         <div className="main-panel">
@@ -368,6 +484,7 @@ const ResourceManager = () => {
                 )}
             </div>
         </div>
+        
     );
 };
 

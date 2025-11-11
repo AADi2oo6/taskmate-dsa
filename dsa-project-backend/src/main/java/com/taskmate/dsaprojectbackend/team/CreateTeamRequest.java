@@ -1,33 +1,33 @@
 package com.taskmate.dsaprojectbackend.team;
 
+import java.util.List;
+
 public class CreateTeamRequest {
     private String teamName;
     private Integer leadId;
-    private String memberIds; // Changed from List<Integer> to String
+    private List<Integer> memberIds; // ✅ FIX: should be a list, not a string
 
-    // Getters
     public String getTeamName() {
         return teamName;
+    }
+
+    public void setTeamName(String teamName) {
+        this.teamName = teamName;
     }
 
     public Integer getLeadId() {
         return leadId;
     }
 
-    public String getMemberIds() {
-        return memberIds;
-    }
-
-    // Setters
-    public void setTeamName(String teamName) {
-        this.teamName = teamName;
-    }
-
     public void setLeadId(Integer leadId) {
         this.leadId = leadId;
     }
 
-    public void setMemberIds(String memberIds) {
+    public List<Integer> getMemberIds() {
+        return memberIds;
+    }
+
+    public void setMemberIds(List<Integer> memberIds) {
         this.memberIds = memberIds;
     }
 }

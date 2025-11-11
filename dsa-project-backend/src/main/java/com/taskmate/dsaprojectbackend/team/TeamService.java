@@ -73,13 +73,7 @@ public class TeamService {
         newTeam.setName(request.getTeamName());
         newTeam.setLeadId(request.getLeadId());
 
-        List<Integer> memberIds = new ArrayList<>();
-        if (request.getMemberIds() != null && !request.getMemberIds().isEmpty()) {
-            memberIds = Stream.of(request.getMemberIds().split(";"))
-                    .map(Integer::parseInt)
-                    .collect(Collectors.toList());
-        }
-
+        List<Integer> memberIds = request.getMemberIds() != null ? request.getMemberIds() : new ArrayList<>();
         // This will now find people FROM THE DATABASE
         List<Person> members = personRepository.findAllById(memberIds);
         Set<Person> memberSet = new HashSet<>(members);
@@ -122,13 +116,7 @@ public class TeamService {
             existingTeam.getMembers().clear();
 
             // Add new members
-            List<Integer> memberIds = new ArrayList<>();
-            if (request.getMemberIds() != null && !request.getMemberIds().isEmpty()) {
-                memberIds = Stream.of(request.getMemberIds().split(";"))
-                        .map(Integer::parseInt)
-                        .collect(Collectors.toList());
-            }
-
+            List<Integer> memberIds = request.getMemberIds() != null ? request.getMemberIds() : new ArrayList<>();
             List<Person> newMembers = personRepository.findAllById(memberIds);
             for (Person newMember : newMembers) {
                 newMember.getTeams().add(existingTeam);

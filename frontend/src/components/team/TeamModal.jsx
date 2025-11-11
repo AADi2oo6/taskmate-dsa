@@ -56,8 +56,8 @@ const TeamModal = ({ team, onClose, onTeamCreated, people }) => {
             toast.error("Team name cannot be empty.");
             return;
         }
-        // Format the member IDs into a single delimited string as requested.
-        const memberIds = state.teamMembers.map(m => m.id).join(';');
+        // Send member IDs as an array of numbers.
+        const memberIds = state.teamMembers.map(m => m.id);
         const requestData = { teamName, memberIds, leadId };
 
         try {
