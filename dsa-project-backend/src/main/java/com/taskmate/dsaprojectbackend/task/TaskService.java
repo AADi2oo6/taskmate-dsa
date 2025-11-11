@@ -3,7 +3,7 @@ package com.taskmate.dsaprojectbackend.task;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Sort; // <-- ADD THIS IMPORT
 import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -72,6 +72,38 @@ public class TaskService {
     public List<Task> getAllTasks() {
         return taskRepository.findAll();
     }
+
+    public List<Task> getSortedTasks(String sortBy) {
+        Sort sort;
+
+        switch (sortBy) {
+            case "priority":
+                // Sorts by the 'priority' field, ascending (1, 2, 3...)
+                sort = Sort.by(Sort.Direction.ASC, "priority");
+                break;
+
+            case "deadline":
+                // Sorts by the 'deadline' field, ascending (earliest date first)
+                // This works because your ISO date strings are alphabetically sortable
+                sort = Sort.by(Sort.Direction.ASC, "deadline");
+                break;
+
+            case "both":
+                // Sorts by priority first, then by deadline
+                sort = Sort.by(Sort.Direction.ASC, "priority")
+                        .and(Sort.by(Sort.Direction.ASC, "deadline"));
+                break;
+
+            default:
+                // Default case, just return by ID
+                sort = Sort.by(Sort.Direction.ASC, "id");
+                break;
+        }
+
+        // Find all tasks and apply the sort
+        return taskRepository.findAll(sort);
+    }
+    // --- END OF NEW METHOD ---
 
     public Task addTask(Task task) {
         // Ensure new tasks always start with a "Pending" status and are unassigned.
