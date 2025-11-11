@@ -1,11 +1,14 @@
 package com.taskmate.dsaprojectbackend.allocation;
 
+import com.taskmate.dsaprojectbackend.resource.ResourceGraph;
 import com.taskmate.dsaprojectbackend.resource.ResourceRepository;
+import com.taskmate.dsaprojectbackend.team.Team;
 import com.taskmate.dsaprojectbackend.team.TeamRepository;
 import com.taskmate.dsaprojectbackend.task.TaskRepository;
 import com.taskmate.dsaprojectbackend.person.PersonRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import java.util.*;
 import java.time.LocalDateTime;
@@ -78,4 +81,38 @@ public class AllocationController {
         allocationRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+//     @Autowired
+// private AllocationRepository allocationRepository;
+
+// @GetMapping("/graph")
+// public ResponseEntity<ResourceGraph> getGraph() {
+//     ResourceGraph graph = new ResourceGraph();
+
+//     List<Allocation> allocations = allocationRepository.findAll();
+
+//     for (Allocation alloc : allocations) {
+//         String resourceNode = "Resource_" + alloc.getResource().getId();
+
+//         // Add nodes
+//         graph.addNode(resourceNode);
+
+//         // Connect Teams → Resource
+//         for (Team t : alloc.getTeams()) {
+//             String teamNode = "Team_" + t.getId();
+//             graph.addNode(teamNode);
+//             graph.addEdge(teamNode, resourceNode);
+//         }
+
+//         // Connect Resource → Tasks
+//         for (Task task : alloc.getTasks()) {
+//             String taskNode = "Task_" + task.getId();
+//             graph.addNode(taskNode);
+//             graph.addEdge(resourceNode, taskNode);
+//         }
+//     }
+
+//     graph.printGraph();
+//     return ResponseEntity.ok(graph);
+// }
+
 }
