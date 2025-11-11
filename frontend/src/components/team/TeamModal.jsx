@@ -1,185 +1,320 @@
-import React, { useState, useEffect, useReducer } from 'react';
-import { FaSearch, FaTimes, FaCrown } from 'react-icons/fa';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import Select from 'react-select';
+import { FaTrash } from 'react-icons/fa';
 
-const memberReducer = (state, action) => {
-    switch (action.type) {
-        case 'ADD_MEMBER':
-            if (!state.teamMembers.find(m => m.id === action.payload.id)) {
-                const newAvailable = state.availablePeople.filter(p => p.id !== action.payload.id);
-                const newTeam = [...state.teamMembers, action.payload];
-                return { ...state, availablePeople: newAvailable, teamMembers: newTeam };
-            }
-            return state;
-        case 'REMOVE_MEMBER':
-            const personToRemove = state.teamMembers.find(m => m.id === action.payload.id);
-            if (personToRemove) {
-                const newTeam = state.teamMembers.filter(p => p.id !== action.payload.id);
-                // Add the person back to available, and sort it for consistent display
-                const newAvailable = [...state.availablePeople, personToRemove].sort((a, b) => a.name.localeCompare(b.name));
-                return { ...state, availablePeople: newAvailable, teamMembers: newTeam };
-            }
-            return state;
-        case 'SET_PEOPLE':
-            // If editing, separate the initial members from the available list
-            const teamMemberIds = new Set(action.teamMembers.map(m => m.id));
-            const available = action.allPeople.filter(p => !teamMemberIds.has(p.id));
-            return { ...state, availablePeople: available, teamMembers: action.teamMembers };
-        default:
-            return state;
-    }
+const TEAMS_API_URL = 'http://localhost:8082/api/teams';
+
+// A simple utility to generate a placeholder avatar
+const Avatar = ({ name }) => {
+    const initial = name ? name.charAt(0).toUpperCase() : '?';
+    return (
+        <div className="avatar">{initial}</div>
+    );
 };
 
-const TeamModal = ({ team, onClose, onTeamCreated, people }) => {
-    const [teamName, setTeamName] = useState(team ? team.name : '');
-    const [leadId, setLeadId] = useState(team ? team.leadId : null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [roleFilter, setRoleFilter] = useState(''); // New state for role filter
+// --- Data Structure: Queue ---
+// A fixed-size queue to manage the activity log.
+class ActivityQueue {
+    constructor(maxSize = 5) {
+        this.items = [];
+        this.maxSize = maxSize;
+    }
 
-    const [state, dispatch] = useReducer(memberReducer, {
-        availablePeople: [],
-        teamMembers: [],
-    });
+    // Adds an item to the front of the queue (most recent)
+    enqueue(item) {
+        // If the queue is full, remove the oldest item from the end
+        if (this.items.length >= this.maxSize) {
+            this.items.pop();
+        }
+        this.items.unshift(item);
+    }
+
+    // Returns all items in the queue
+    getLog() {
+        return this.items;
+    }
+
+    // Creates a new ActivityQueue instance with the same items.
+    clone() {
+        const newQueue = new ActivityQueue(this.maxSize);
+        newQueue.items = [...this.items];
+        return newQueue;
+    }
+}
+
+const TeamModal = ({ team, onClose, people, tasks, onTeamCreated }) => {
+    const [teamName, setTeamName] = useState(team ? team.name : '');
+    const [description, setDescription] = useState(team ? team.description || '' : '');
+    const [leadId, setLeadId] = useState(team ? team.leadId || '' : '');
+    const [memberIds, setMemberIds] = useState(team ? team.members.map(m => m.id) : []);
+    const [activityLogQueue, setActivityLogQueue] = useState(new ActivityQueue(5));
+    const [selectedTaskIds, setSelectedTaskIds] = useState([]);
+    const [activeTab, setActiveTab] = useState('details');
 
     useEffect(() => {
-        // Initialize state based on the people prop from TeamsPage
-        dispatch({
-            type: 'SET_PEOPLE',
-            allPeople: people,
-            teamMembers: team ? team.members : []
-        });
-    }, [team, people]); // Rerun if the team or people props change
+        if (team) {
+            setTeamName(team.name);
+            setDescription(team.description || '');
+            setLeadId(team.leadId || '');
+            const currentMemberIds = team.members.map(m => m.id);
+            setMemberIds(currentMemberIds);
+            // Ensure lead is always a member
+            if (team.leadId && !currentMemberIds.includes(team.leadId)) {
+                setMemberIds([...currentMemberIds, team.leadId]);
+            }
+            // Find tasks assigned to this team
+            const teamTasks = tasks.filter(t => t.teamId === team.id);
+            setSelectedTaskIds(teamTasks.map(t => t.id));
+            setActivityLogQueue(new ActivityQueue(5)); // Reset queue for new team
+        } else {
+            setTeamName('');
+            setDescription('');
+            setLeadId('');
+            setMemberIds([]);
+            setSelectedTaskIds([]);
+        }
+        setActiveTab('details'); // Reset to the main tab whenever the modal is opened/re-opened
+    }, [team, tasks]);
 
-    const handleSaveTeam = async () => {
-        if (!teamName.trim()) {
-            toast.error("Team name cannot be empty.");
+    // --- Data Structure Usage: Enqueue Activity ---
+    const logActivity = useCallback((message, personName) => {
+        setActivityLogQueue(prevQueue => {
+            const newQueue = new ActivityQueue(5); // Create a new instance for immutability
+            newQueue.items = [...prevQueue.getLog()]; // Copy existing items
+            newQueue.enqueue({ message: `${message}: ${personName}`, timestamp: new Date() });
+            return newQueue;
+        });
+    }, []); // No dependency on `people` needed
+    
+    const memberDetails = memberIds.map(id => people.find(p => p.id === id)).filter(Boolean);
+
+    const addMemberOptions = people
+        .filter(p => !memberIds.includes(p.id))
+        .map(p => ({ value: p.id, label: p.name, role: p.role }));
+    
+    const taskOptions = tasks
+        .filter(t => t.status === 'Pending') // Show all pending tasks
+        .map(t => ({ value: t.id, label: t.description }));
+
+    // Custom format for the member selection dropdown to include avatars and roles
+    const formatOptionLabel = ({ value, label }) => {
+        const person = people.find(p => p.id === value);
+        return (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Avatar name={label} />
+                <div style={{ marginLeft: '10px' }}>
+                    <div>{label}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>{person?.role}</div>
+                </div>
+            </div>
+        );
+    };
+
+    const handleAddMember = (selectedOption) => {
+        if (selectedOption && !memberIds.includes(selectedOption.value)) {            
+            const person = people.find(p => p.id === selectedOption.value);
+            setMemberIds([...memberIds, selectedOption.value]);
+            if (person) logActivity('Added member', person.name);
+        }
+    };
+
+    const handleTaskChange = (selectedOptions) => {
+        setSelectedTaskIds(selectedOptions ? selectedOptions.map(o => o.value) : []);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!teamName) {
+            toast.error('Team name is required.');
             return;
         }
-        // Format the member IDs into a single delimited string as requested.
-        const memberIds = state.teamMembers.map(m => m.id).join(';');
-        const requestData = { teamName, memberIds, leadId };
+
+        const teamData = {
+            teamName,
+            description,
+            leadId: leadId ? Number(leadId) : null, // The lead is now managed via the member list
+            memberIds: memberIds.join(';'),
+        };
 
         try {
+            let savedTeam;
             if (team) {
-                // It's an update
-                await axios.put(`http://localhost:8082/api/teams/${team.id}`, requestData);
-                toast.success(`Team "${teamName}" updated successfully!`);
+                // Update existing team
+                const response = await axios.put(`${TEAMS_API_URL}/${team.id}`, teamData);
+                savedTeam = response.data;
+                toast.success('Team updated successfully!');
             } else {
-                // It's a creation
-                await axios.post('http://localhost:8082/api/teams', requestData);
-                toast.success(`Team "${teamName}" created successfully!`);
+                // Create new team
+                const response = await axios.post(TEAMS_API_URL, teamData);
+                savedTeam = response.data;
+                toast.success('Team created successfully!');
             }
-            
-            onTeamCreated(); // Notify parent to refresh
-            onClose(); // Close modal
+
+            // Assign tasks to the team if it's an existing team
+            if (savedTeam && savedTeam.id && team) {
+                await axios.post(`${TEAMS_API_URL}/${savedTeam.id}/assign-tasks`, selectedTaskIds);
+                toast.success('Tasks assigned to team successfully!');
+            }
+
+            onTeamCreated(); // This will refetch all data
+            onClose();
         } catch (error) {
-            const action = team ? 'update' : 'create';
-            toast.error(`Failed to ${action} team.`);
-            console.error(`Error ${action}ing team:`, error);
+            toast.error(`Failed to ${team ? 'update' : 'create'} team.`);
+            console.error('Error saving team:', error.response?.data || error.message);
         }
     };
 
-    const handleSetLead = (id) => {
-        setLeadId(id);
+    const handleRoleChange = (memberId, newRole) => {
+        const member = people.find(p => p.id === memberId);
+        if (newRole === 'Team Lead') {
+            if (leadId !== memberId && member) {
+                logActivity('Promoted to Team Lead', member.name);
+            }
+            setLeadId(memberId);
+        } else if (leadId === memberId) {
+            // If demoting the current lead, clear the leadId
+            if (member) {
+                logActivity('Is no longer Team Lead', member.name);
+            }
+            setLeadId('');
+        }
     };
 
-    const handleRemoveMember = (person) => {
-        if (person.id === leadId) setLeadId(null); // Unset lead if they are removed
-        dispatch({ type: 'REMOVE_MEMBER', payload: person });
+    const handleRemoveMember = (memberIdToRemove) => {
+        const person = people.find(p => p.id === memberIdToRemove);
+        setMemberIds(memberIds.filter(id => id !== memberIdToRemove));
+        if (person) {
+            logActivity('Removed member', person.name);
+        }
     };
-
-    // --- New Feature Logic ---
-    // Get a unique, sorted list of roles for the filter dropdown
-    const availableRoles = [...new Set(people.map(p => p.role))].sort();
-
-    // Calculate total work hours for the current team members
-    const totalTeamHours = state.teamMembers.reduce((sum, member) => sum + (member.totalWorkHour || 0), 0);
-
-    const filteredAvailablePeople = state.availablePeople.filter(p =>
-        // Filter by search term
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        // AND filter by selected role (if any)
-        (roleFilter ? p.role === roleFilter : true)
-    );
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
+        <div className="modal-backdrop">
+            <div className="modal-content" style={{ maxWidth: '500px' }}>
                 <div className="modal-header">
-                    <h2>{team ? `Manage Team` : 'Create New Team'}</h2>
+                    <h2>{team ? 'Manage Team' : 'Create New Team'}</h2>
+                    <button onClick={onClose} className="close-btn" title="Close">
+                        &times;
+                    </button>
                 </div>
+                <div className="modal-tabs">
+                    <button type="button" className={activeTab === 'details' ? 'active' : ''} onClick={() => setActiveTab('details')}>
+                        Details
+                    </button>
+                    <button type="button" className={activeTab === 'tasks' ? 'active' : ''} onClick={() => setActiveTab('tasks')} disabled={!team}>
+                        Assign Tasks
+                    </button>
+                    <button type="button" className={activeTab === 'activity' ? 'active' : ''} onClick={() => setActiveTab('activity')} disabled={!team}>
+                        Activity
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit} className="modal-form">
+                    {activeTab === 'details' && (
+                        <>
+                            <div className="form-field">
+                                <label>Team Name</label>
+                                <input
+                                    type="text"
+                                    value={teamName}
+                                    onChange={(e) => setTeamName(e.target.value)}
+                                    placeholder="Enter team name"
+                                    required
+                                />
+                            </div>
+                            <div className="form-field">
+                                <label>Team Description (Optional)</label>
+                                <textarea
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="What is this team's purpose?"
+                                    rows="3"
+                                />
+                            </div>
+                            <div className="form-section">
+                                <label className="form-section-label">Add Members</label>
+                                <Select
+                                    options={addMemberOptions}
+                                    onChange={handleAddMember}
+                                    formatOptionLabel={formatOptionLabel}
+                                    placeholder="Search and add team members..."
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                    value={null} // Reset after selection
+                                />
+                            </div>
+                            <div className="member-list">
+                                {memberDetails.length > 0 ? memberDetails.map(member => (
+                                    <div key={member.id} className={`member-item ${leadId === member.id ? 'lead' : ''}`}>
+                                        <Avatar name={member.name} />
+                                        <div className="member-info">
+                                            <span className="member-name">{member.name}</span>
+                                            <span className="member-role">{member.role}</span>
+                                        </div>
+                                        <div className="member-actions" style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+                                            <select
+                                                value={leadId === member.id ? 'Team Lead' : 'Member'}
+                                                onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                                                className="role-select"
+                                            >
+                                                <option>Member</option>
+                                                <option>Team Lead</option>
+                                            </select>
+                                            <button
+                                                type="button"
+                                                className="action-btn-icon danger"
+                                                title="Remove Member"
+                                                onClick={() => handleRemoveMember(member.id)}
+                                            >
+                                                <FaTrash />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )) : <p className="empty-list-placeholder">No members yet. Add people using the search bar above.</p>}
+                            </div>
+                        </>
+                    )}
 
-                <div className="modal-body">
-                    <div className="panel">
-                        <h3>Team Details</h3>
-                        <div className="form-group" style={{ marginBottom: '24px' }}>
-                            <label htmlFor="teamName">Team Name</label>
-                            <input
-                                id="teamName"
-                                type="text"
-                                value={teamName}
-                                onChange={(e) => setTeamName(e.target.value)}
-                                placeholder="e.g., Frontend Developers"
+                    {activeTab === 'tasks' && team && (
+                        <div className="form-section">
+                            <label className="form-section-label">Assign Tasks to Team</label>
+                            <Select
+                                isMulti
+                                options={tasks.filter(t => t.status === 'Pending').map(t => ({ value: t.id, label: t.description }))}
+                                value={tasks.filter(t => selectedTaskIds.includes(t.id)).map(t => ({ value: t.id, label: t.description }))}
+                                onChange={handleTaskChange}
+                                placeholder="Select tasks to assign..."
+                                className="react-select-container"
+                                classNamePrefix="react-select"
                             />
                         </div>
-                        <div className="member-management">
-                            <div className="panel" style={{padding: 0}}>
-                                <h3>Available People</h3>
-                                <div className="member-filters">
-                                    <input
-                                        type="text"
-                                        placeholder="Search people..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                    <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-                                        <option value="">All Roles</option>
-                                        {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
-                                    </select>
-                                </div>
-                                <ul className="member-list">
-                                    {filteredAvailablePeople.map(p => (
-                                        <li key={p.id} onClick={() => dispatch({ type: 'ADD_MEMBER', payload: p })}>
-                                            {p.name} <span>({p.role})</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            <div className="panel" style={{padding: 0}}>
-                                <div className="team-members-header">
-                                    <h3>Team Members ({state.teamMembers.length})</h3>
-                                    <div className="team-stats">
-                                        Total Hours: <strong>{totalTeamHours} / week</strong>
-                                    </div>
-                                </div>
-                                <ul className="member-list">
-                                    {state.teamMembers.map(p => (
-                                        <li key={p.id} className={p.id === leadId ? 'lead' : ''}>
-                                            <div>{p.name} <span>({p.role})</span></div>
-                                            <div className="member-actions">
-                                                <button onClick={() => handleSetLead(p.id)} className="icon-btn" title="Make Team Lead">
-                                                    <FaCrown />
-                                                </button>
-                                                <button onClick={() => handleRemoveMember(p)} className="icon-btn remove-member-btn" title="Remove Member">
-                                                    <FaTimes />
-                                                </button>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    )}
 
-                <div className="modal-actions">
-                    <button className="action-btn cancel-btn" onClick={onClose}>Cancel</button>
-                    <button className="action-btn sort-btn" onClick={handleSaveTeam}>{team ? 'Update Team' : 'Create Team'}</button>
-                </div>
+                    {activeTab === 'activity' && team && (
+                        <div className="form-section">
+                            <label className="form-section-label">Recent Activity (Queue)</label>
+                            <ul className="activity-log">
+                                {activityLogQueue.getLog().length > 0 ? activityLogQueue.getLog().map((entry, index) => (
+                                    <li key={index}><span className="activity-message">{entry.message}</span><span className="activity-timestamp">{entry.timestamp.toLocaleTimeString()}</span></li>
+                                )) : <p className="empty-list-placeholder">No recent activity in this session.</p>}
+                            </ul>
+                        </div>
+                    )}
+
+                    <div className="modal-footer">
+                        <button type="button" onClick={onClose} className="btn-secondary">
+                            Cancel
+                        </button>
+                        <button type="submit" className="btn-primary">
+                            {team ? 'Save Changes' : 'Create Team'}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
 };
+
 
 export default TeamModal;

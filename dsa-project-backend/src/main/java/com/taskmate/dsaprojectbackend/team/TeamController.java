@@ -2,10 +2,8 @@ package com.taskmate.dsaprojectbackend.team;
 
 import java.util.List;
 import java.util.Map;
-import com.taskmate.dsaprojectbackend.team.TeamDTO; // <-- Add this import
-import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired; // <-- Add this import
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,5 +66,11 @@ public class TeamController {
     public ResponseEntity<Map<String, Boolean>> areOnSameTeam(@RequestParam int personId1, @RequestParam int personId2) {
         boolean result = teamService.areOnSameTeam(personId1, personId2);
         return ResponseEntity.ok(Map.of("areOnSameTeam", result));
+    }
+
+    @PostMapping("/{id}/assign-tasks")
+    public ResponseEntity<Void> assignTasksToTeam(@PathVariable int id, @RequestBody List<Integer> taskIds) {
+        teamService.assignTasksToTeam(id, taskIds);
+        return ResponseEntity.ok().build();
     }
 }

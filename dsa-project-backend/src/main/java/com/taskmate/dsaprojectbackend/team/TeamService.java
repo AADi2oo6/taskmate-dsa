@@ -1,29 +1,35 @@
 package com.taskmate.dsaprojectbackend.team;
 
 // ... (keep all your existing imports) ...
-import com.taskmate.dsaprojectbackend.common.UnionFind;
-import com.taskmate.dsaprojectbackend.person.Person;
-import com.taskmate.dsaprojectbackend.person.PersonRepository;
-import jakarta.annotation.PostConstruct; // Make sure this is imported
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Set; // Make sure this is imported
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.taskmate.dsaprojectbackend.common.UnionFind;
+import com.taskmate.dsaprojectbackend.person.Person;
+import com.taskmate.dsaprojectbackend.person.PersonRepository;
+import com.taskmate.dsaprojectbackend.task.Task;
+import com.taskmate.dsaprojectbackend.task.TaskRepository;
+
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class TeamService {
     private final TeamRepository teamRepository;
     private final PersonRepository personRepository;
+    private final TaskRepository taskRepository;
     private UnionFind personTeamUnionFind;
 
-    public TeamService(TeamRepository teamRepository, PersonRepository personRepository) {
+    public TeamService(TeamRepository teamRepository, PersonRepository personRepository, TaskRepository taskRepository) {
         this.teamRepository = teamRepository;
         this.personRepository = personRepository;
+        this.taskRepository = taskRepository;
         // Initialize UnionFind here
         this.personTeamUnionFind = new UnionFind();
     }
@@ -170,6 +176,27 @@ public class TeamService {
     public boolean areOnSameTeam(int personId1, int personId2) {
         return personTeamUnionFind.find(personId1) == personTeamUnionFind.find(personId2);
     }
+
+    @Transactional
+    public void assignTasksToTeam(int teamId, List<Integer> taskIds) {
+        if (!teamRepository.existsById(teamId)) {
+            throw new RuntimeException("Team not found with id: " + teamId);
+        }
+
+        // First, find all tasks currently assigned to this team and unassign them.
+        List<Task> currentlyAssignedTasks = taskRepository.findByTeamId(teamId);
+        for (Task task : currentlyAssignedTasks) {
+            task.setTeamId(null);
+        }
+        taskRepository.saveAll(currentlyAssignedTasks);
+
+        List<Task> tasks = taskRepository.findAllById(taskIds);
+        for (Task task : tasks) {
+            task.setTeamId(teamId);
+        }
+        taskRepository.saveAll(tasks);
+    }
+
 
     // REMOVED saveTeamsToCSV() method. It's not needed if we use the DB.
 }

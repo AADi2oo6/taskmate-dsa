@@ -17,6 +17,7 @@ public class Task {
     private String targetRole;
     private Integer assignedPersonId; // New field to track assignment
     
+    private Integer teamId; // New field to track team assignment
     // New fields for priority queue feature
     private int priority; // 1-5, where 1 is highest priority
     private String deadline; // Deadline date
@@ -110,5 +111,13 @@ public class Task {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Integer getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(Integer teamId) {
+        this.teamId = teamId;
     }
 }

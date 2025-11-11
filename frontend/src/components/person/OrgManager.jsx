@@ -375,6 +375,7 @@ const OrgManager = () => {
                     <Route path="/tasks" element={<TasksPage setTaskCount={setTaskCount} />} />
                     <Route path="/hierarchy" element={<OrgHierarchyTree setTeamCount={setTeamCount} />} />
                     <Route path="/team/:teamId" element={<TeamDetailPage />} />
+                    <Route path="/team/:teamId" element={<TeamDetailPage />} /> {/* Ensure this route exists */}
                     <Route path="/resourcemanage" element={<ResourceManager />} />
                 </Routes>
             </main>

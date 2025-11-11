@@ -395,6 +395,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    height: 100%; /* Ensure card takes full height of grid cell */
 }
 
 .team-card h3 {
@@ -424,8 +425,14 @@
 
 .avatar-stack {
     display: flex;
-    margin-top: auto; /* Pushes avatars to the bottom */
-    padding-top: 16px;
+}
+
+.team-card-footer {
+    margin-top: auto; /* This is the key change to push the footer to the bottom */
+    padding-top: 16px; /* Add some space above the footer content */
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Space between avatars and button */
 }
 
 .avatar {
@@ -471,7 +478,6 @@
     border-radius: 6px;
     font-weight: 500;
     cursor: pointer;
-    margin-top: 16px; /* Add space above the button */
     width: 100%; /* Make the button full-width of the card padding */
     transition: background-color 0.2s, color 0.2s;
 }
@@ -516,13 +522,13 @@
 }
 
 .modal-content {
-    background-color: white;
+    background-color: #ffffff;
     border-radius: 8px;
     width: 100%;
-    max-width: 800px;
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    max-width: 500px; /* Compact width */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Vertical layout */
 }
 
 .modal-header {
@@ -559,12 +565,11 @@
     cursor: not-allowed;
 }
 
-.modal-body {
+.modal-form {
     padding: 24px;
-    flex-grow: 1;
-}
-
-.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Consistent spacing between form elements */
     margin-bottom: 24px;
 }
 
@@ -575,11 +580,11 @@
     font-size: 0.9rem;
 }
 
-.form-group input {
+.form-field input, .form-field textarea {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 6px; 
 }
 
 .member-management {
@@ -611,14 +616,12 @@
     color: var(--text-secondary);
 }
 
-.member-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    height: 250px;
+.member-list { 
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
     overflow-y: auto;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
 }
 
 .member-list li {
@@ -633,11 +636,7 @@
 .member-list li:hover {
     background-color: #f9fafb;
 }
-.member-list li.lead {
-    background-color: #fefce8; /* Light yellow for lead */
-}
 .member-list li span {
-    color: var(--text-secondary);
     font-size: 0.8rem;
 }
 .member-actions {
@@ -681,12 +680,6 @@
     gap: 10px;
     padding: 20px 24px;
     border-top: 1px solid var(--border-color);
-}
-.search-form input {
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 0.9rem;
 }
 
 .hierarchy-controls {
@@ -932,4 +925,213 @@ li:not(:only-child) > .node-card::after {
     font-size: 12px;
     color: var(--text-secondary);
     margin-bottom: 4px;
+}
+
+/* --- Team Modal Enhancements --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(17, 24, 39, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+
+.form-field, .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-field label, .form-section-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.form-field input, .form-field textarea {
+    width: 100%;
+    padding: 10px 12px; /* Slightly more padding */
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-field input:focus, .form-field textarea:focus {
+    outline: none;
+    border-color: var(--active-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.form-field textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    max-height: 130px; /* Further reduced max height to make modal shorter */
+    overflow-y: auto;
+    padding-right: 4px; /* Space for scrollbar */
+}
+
+/* --- Activity Log (Queue) Styles --- */
+.activity-log {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    max-height: 140px;
+    overflow-y: auto; 
+    background-color: #f9fafb;
+}
+
+.activity-log li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.activity-log li:last-child { border-bottom: none; }
+.activity-message { color: var(--text-primary); }
+.activity-timestamp { color: var(--text-secondary); font-size: 0.75rem; }
+
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: #f9fafb;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+
+.member-item:hover {
+    background-color: #f3f4f6;
+}
+
+.member-item.lead {
+    background-color: #fefce8; /* Light yellow for lead */
+    border: 1px solid #facc15; /* More prominent border for lead */
+}
+
+.member-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.member-name { font-weight: 500; }
+.member-role { font-size: 0.8rem; color: var(--text-secondary); }
+
+.role-select {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: white;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.role-select:focus {
+    outline: none;
+    border-color: var(--active-blue);
+}
+
+.empty-list-placeholder {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-secondary);
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    margin-top: 8px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-primary {
+    background-color: var(--active-blue);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.btn-secondary {
+    background-color: white;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+.btn-secondary:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0 8px;
+    line-height: 1;
+}
+.close-btn:hover {
+    color: var(--text-primary);
+}
+
+.action-btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.action-btn-icon:hover {
+    color: var(--text-primary);
+    background-color: #e5e7eb;
+}
+
+.action-btn-icon.danger:hover {
+    color: #ef4444;
+    background-color: #fee2e2;
 }

@@ -7,13 +7,11 @@ import { useMemo } from 'react';
 
 const TEAMS_API_URL = 'http://localhost:8082/api/teams';
 const PEOPLE_API_URL = 'http://localhost:8082/api/people';
-const TASKS_API_URL = 'http://localhost:8082/api/tasks';
 
 const TeamsPage = ({ setTeamCount }) => {
     const [teams, setTeams] = useState([]);
     const [people, setPeople] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [tasks, setTasks] = useState([]);
     const [editingTeam, setEditingTeam] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -32,16 +30,14 @@ const TeamsPage = ({ setTeamCount }) => {
 
         setError(null);
         try {
-            const [teamsResponse, peopleResponse, tasksResponse] = await Promise.all([
+            const [teamsResponse, peopleResponse] = await Promise.all([
                 axios.get(TEAMS_API_URL),
-                axios.get(PEOPLE_API_URL),
-                axios.get(TASKS_API_URL)
+                axios.get(PEOPLE_API_URL)
             ]);
 
             setTeams(teamsResponse.data);
             setPeople(peopleResponse.data);
             setTeamCount(teamsResponse.data.length);
-            setTasks(tasksResponse.data);
         } catch (error) {
             const errorMessage = 'Failed to fetch team data.';
             toast.error(errorMessage);
@@ -198,7 +194,6 @@ const TeamsPage = ({ setTeamCount }) => {
                     team={editingTeam}
                     onClose={handleCloseModal}
                     people={people}
-                    tasks={tasks}
                     onTeamCreated={handleTeamCreated}
                 />
             )}
